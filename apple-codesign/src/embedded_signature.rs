@@ -41,11 +41,11 @@
 
 use {
     crate::{
+        AppleCodesignError, Result,
         code_directory::CodeDirectoryBlob,
         code_requirement::{CodeRequirements, RequirementType},
         cryptography::DigestType,
         environment_constraints::EncodedEnvironmentConstraints,
-        AppleCodesignError, Result,
     },
     cryptographic_message_syntax::SignedData,
     scroll::{IOwrite, Pread},
@@ -810,7 +810,7 @@ impl<'a> EntitlementsDerBlob<'a> {
 
     /// Attempt to parse and resolve the DER data into a plist.
     pub fn parse_der(&self) -> Result<plist::Value, AppleCodesignError> {
-        crate::plist_der::der_decode_plist(self.der.as_ref())
+        crate::plist_der::der_decode_plist(&*self.der)
     }
 
     /// Parse the plist from DER and format to XML.
@@ -860,12 +860,12 @@ impl<'a> ConstraintsDerBlob<'a> {
 
     /// Attempt to parse and resolve the DER data into a plist.
     pub fn parse_der_plist(&self) -> Result<plist::Value> {
-        crate::plist_der::der_decode_plist(self.der.as_ref())
+        crate::plist_der::der_decode_plist(&*self.der)
     }
 
     /// Attempt to parse DER into an [EncodedEnvironmentConstraints] instance.
     pub fn parse_encoded_constraints(&self) -> Result<EncodedEnvironmentConstraints> {
-        EncodedEnvironmentConstraints::from_der(self.der.as_ref())
+        EncodedEnvironmentConstraints::from_der(&*self.der)
     }
 
     /// Parse the plist from DER and format to XML.

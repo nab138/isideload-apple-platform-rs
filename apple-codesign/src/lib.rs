@@ -115,7 +115,6 @@ mod bundle_signing;
 pub use bundle_signing::*;
 mod certificate;
 pub use certificate::*;
-pub mod cli;
 mod code_directory;
 pub use code_directory::*;
 pub mod code_requirement;

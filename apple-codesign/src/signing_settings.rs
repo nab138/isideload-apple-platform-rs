@@ -13,11 +13,11 @@ use {
         embedded_signature::{Blob, RequirementBlob},
         environment_constraints::EncodedEnvironmentConstraints,
         error::AppleCodesignError,
-        macho::{parse_version_nibbles, MachFile},
+        macho::{MachFile, parse_version_nibbles},
     },
     glob::Pattern,
     goblin::mach::cputype::{
-        CpuType, CPU_TYPE_ARM, CPU_TYPE_ARM64, CPU_TYPE_ARM64_32, CPU_TYPE_X86_64,
+        CPU_TYPE_ARM, CPU_TYPE_ARM64, CPU_TYPE_ARM64_32, CPU_TYPE_X86_64, CpuType,
     },
     log::{error, info},
     reqwest::{IntoUrl, Url},
@@ -1007,9 +1007,11 @@ impl<'key> SigningSettings<'key> {
                         // The binary identifier should agree between all Mach-O within a
                         // universal binary. If we've already seen an identifier, use it
                         // implicitly.
-                        if initial_identifier != cd.ident.as_ref() {
-                            info!("identifiers within Mach-O do not agree (initial: {initial_identifier}, subsequent: {}); reconciling to {initial_identifier}",
-                            cd.ident);
+                        if initial_identifier != &*cd.ident {
+                            info!(
+                                "identifiers within Mach-O do not agree (initial: {initial_identifier}, subsequent: {}); reconciling to {initial_identifier}",
+                                cd.ident
+                            );
                             self.set_binary_identifier(scope_index.clone(), initial_identifier);
                         }
                     } else {
@@ -1037,7 +1039,10 @@ impl<'key> SigningSettings<'key> {
                             self.team_id
                                 .insert(scope_index.clone(), team_id.to_string());
                         } else {
-                            info!("dropping team ID {} because not signing with an Apple signed certificate", team_id);
+                            info!(
+                                "dropping team ID {} because not signing with an Apple signed certificate",
+                                team_id
+                            );
                         }
                     }
 
@@ -1394,8 +1399,12 @@ impl<'key> SigningSettings<'key> {
 
         if let Some((_, cert)) = self.signing_key() {
             if !cert.chains_to_apple_root_ca() && !cert.is_test_apple_signed_certificate() {
-                error!("--for-notarization requires use of an Apple-issued signing certificate; current certificate is not signed by Apple");
-                error!("hint: use a signing certificate issued by Apple that is signed by an Apple certificate authority");
+                error!(
+                    "--for-notarization requires use of an Apple-issued signing certificate; current certificate is not signed by Apple"
+                );
+                error!(
+                    "hint: use a signing certificate issued by Apple that is signed by an Apple certificate authority"
+                );
                 have_error = true;
             }
 
@@ -1404,17 +1413,25 @@ impl<'key> SigningSettings<'key> {
                     || e == CodeSigningCertificateExtension::DeveloperIdInstaller
                     || e == CodeSigningCertificateExtension::DeveloperIdKernel {}
             }) {
-                error!("--for-notarization requires use of a Developer ID signing certificate; current certificate doesn't appear to be such a certificate");
-                error!("hint: use a `Developer ID Application`, `Developer ID Installer`, or `Developer ID Kernel` certificate");
+                error!(
+                    "--for-notarization requires use of a Developer ID signing certificate; current certificate doesn't appear to be such a certificate"
+                );
+                error!(
+                    "hint: use a `Developer ID Application`, `Developer ID Installer`, or `Developer ID Kernel` certificate"
+                );
                 have_error = true;
             }
 
             if self.time_stamp_url().is_none() {
-                error!("--for-notarization requires use of a time-stamp protocol server; none configured");
+                error!(
+                    "--for-notarization requires use of a time-stamp protocol server; none configured"
+                );
                 have_error = true;
             }
         } else {
-            error!("--for-notarization requires use of a Developer ID signing certificate; no signing certificate was provided");
+            error!(
+                "--for-notarization requires use of a Developer ID signing certificate; no signing certificate was provided"
+            );
             have_error = true;
         }
 
