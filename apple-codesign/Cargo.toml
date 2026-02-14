@@ -1,13 +1,13 @@
 [package]
-name = "apple-codesign"
+name = "isideload-apple-codesign"
 version = "0.29.0"
-authors = ["Gregory Szorc <gregory.szorc@gmail.com>"]
+authors = ["Nicholas Sharp <nab@nabdev.me>"]
 edition = "2024"
 license = "MPL-2.0"
 description = "Pure Rust interface to code signing on Apple platforms"
 keywords = ["apple", "macos", "codesign"]
-homepage = "https://github.com/indygreg/apple-platform-rs"
-repository = "https://github.com/indygreg/apple-platform-rs.git"
+homepage = "https://github.com/nab138/isideload-apple-platform-rs"
+repository = "https://github.com/nab138/isideload-apple-platform-rs.git"
 readme = "README.md"
 
 [dependencies]
@@ -90,10 +90,12 @@ version = "0.21.0"
 [dependencies.apple-flat-package]
 path = "../apple-flat-package"
 version = "0.20.0"
+package = "isideload-apple-flat-package"
 
 [dependencies.apple-xar]
 path = "../apple-xar"
 version = "0.20.0"
+package = "isideload-apple-xar"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 security-framework = { version = "2.11.1", features = ["OSX_10_12"] }

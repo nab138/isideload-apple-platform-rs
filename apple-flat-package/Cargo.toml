@@ -1,14 +1,14 @@
 [package]
-name = "apple-flat-package"
+name = "isideload-apple-flat-package"
 version = "0.20.0"
-authors = ["Gregory Szorc <gregory.szorc@gmail.com>"]
+authors = ["Nicholas Sharp <nab@nabdev.me>"]
 edition = "2021"
 rust-version = "1.81"
 license = "MPL-2.0"
 description = "Apple flat package (.pkg) format handling"
 keywords = ["apple", "flat-package", "pkgbuild", "pkg", "productbuild"]
-homepage = "https://github.com/indygreg/apple-platform-rs"
-repository = "https://github.com/indygreg/apple-platform-rs.git"
+homepage = "https://github.com/nab138/isideload-apple-platform-rs"
+repository = "https://github.com/nab138/isideload-apple-platform-rs.git"
 readme = "README.md"
 
 [dependencies]
@@ -21,6 +21,7 @@ thiserror = "2.0.3"
 [dependencies.apple-xar]
 path = "../apple-xar"
 version = "0.20.0"
+package = "isideload-apple-xar"
 
 [dependencies.cpio-archive]
 path = "../cpio-archive"

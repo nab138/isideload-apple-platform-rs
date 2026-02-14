@@ -168,90 +168,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "apple-codesign"
-version = "0.29.0"
-dependencies = [
- "anyhow",
- "app-store-connect",
- "apple-bundles",
- "apple-flat-package",
- "apple-xar",
- "aws-config",
- "aws-lc-rs",
- "aws-sdk-s3",
- "aws-smithy-http",
- "aws-smithy-types",
- "base64",
- "bcder",
- "bitflags 2.11.0",
- "bytes",
- "chrono",
- "clap",
- "der 0.7.10",
- "dialoguer",
- "difference",
- "digest",
- "dirs",
- "elliptic-curve 0.13.8",
- "env_logger",
- "figment",
- "filetime",
- "flate2",
- "glob",
- "goblin",
- "hex",
- "indoc",
- "isideload-cryptographic-message-syntax",
- "isideload-x509-certificate",
- "log",
- "md-5",
- "num-traits",
- "object",
- "oid-registry",
- "once_cell",
- "p12",
- "p256 0.13.2",
- "pem",
- "pkcs1",
- "pkcs8 0.10.2",
- "plist",
- "rand 0.8.5",
- "rasn",
- "rayon",
- "regex",
- "reqwest",
- "rsa",
- "scroll",
- "security-framework 2.11.1",
- "security-framework-sys",
- "semver",
- "serde",
- "serde_json",
- "serde_yaml",
- "sha2",
- "signature 2.2.0",
- "simple-file-manifest",
- "spki 0.7.3",
- "subtle",
- "tar",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "trycmd-indygreg-fork",
- "uuid",
- "walkdir",
- "widestring",
- "windows-sys 0.59.0",
- "x509",
- "xml-rs",
- "yasna",
- "yubikey",
- "zeroize",
- "zip",
- "zip_structs",
-]
-
-[[package]]
 name = "apple-dmg"
 version = "0.5.0"
 dependencies = [
@@ -270,53 +186,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "apple-flat-package"
-version = "0.20.0"
-dependencies = [
- "apple-xar",
- "cpio-archive",
- "flate2",
- "scroll",
- "serde",
- "serde-xml-rs",
- "thiserror 2.0.18",
-]
-
-[[package]]
 name = "apple-sdk"
 version = "0.6.0"
 dependencies = [
  "plist",
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "apple-xar"
-version = "0.20.0"
-dependencies = [
- "base64",
- "bcder",
- "bzip2",
- "chrono",
- "digest",
- "flate2",
- "isideload-cryptographic-message-syntax",
- "isideload-x509-certificate",
- "log",
- "md-5",
- "rand 0.8.5",
- "reqwest",
- "scroll",
- "serde",
- "serde-xml-rs",
- "sha1",
- "sha2",
- "signature 2.2.0",
- "thiserror 2.0.18",
- "url",
- "xml-rs",
- "xz2",
 ]
 
 [[package]]
@@ -2341,6 +2216,131 @@ name = "is_terminal_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
+
+[[package]]
+name = "isideload-apple-codesign"
+version = "0.29.0"
+dependencies = [
+ "anyhow",
+ "app-store-connect",
+ "apple-bundles",
+ "aws-config",
+ "aws-lc-rs",
+ "aws-sdk-s3",
+ "aws-smithy-http",
+ "aws-smithy-types",
+ "base64",
+ "bcder",
+ "bitflags 2.11.0",
+ "bytes",
+ "chrono",
+ "clap",
+ "der 0.7.10",
+ "dialoguer",
+ "difference",
+ "digest",
+ "dirs",
+ "elliptic-curve 0.13.8",
+ "env_logger",
+ "figment",
+ "filetime",
+ "flate2",
+ "glob",
+ "goblin",
+ "hex",
+ "indoc",
+ "isideload-apple-flat-package",
+ "isideload-apple-xar",
+ "isideload-cryptographic-message-syntax",
+ "isideload-x509-certificate",
+ "log",
+ "md-5",
+ "num-traits",
+ "object",
+ "oid-registry",
+ "once_cell",
+ "p12",
+ "p256 0.13.2",
+ "pem",
+ "pkcs1",
+ "pkcs8 0.10.2",
+ "plist",
+ "rand 0.8.5",
+ "rasn",
+ "rayon",
+ "regex",
+ "reqwest",
+ "rsa",
+ "scroll",
+ "security-framework 2.11.1",
+ "security-framework-sys",
+ "semver",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sha2",
+ "signature 2.2.0",
+ "simple-file-manifest",
+ "spki 0.7.3",
+ "subtle",
+ "tar",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "trycmd-indygreg-fork",
+ "uuid",
+ "walkdir",
+ "widestring",
+ "windows-sys 0.59.0",
+ "x509",
+ "xml-rs",
+ "yasna",
+ "yubikey",
+ "zeroize",
+ "zip",
+ "zip_structs",
+]
+
+[[package]]
+name = "isideload-apple-flat-package"
+version = "0.20.0"
+dependencies = [
+ "cpio-archive",
+ "flate2",
+ "isideload-apple-xar",
+ "scroll",
+ "serde",
+ "serde-xml-rs",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "isideload-apple-xar"
+version = "0.20.0"
+dependencies = [
+ "base64",
+ "bcder",
+ "bzip2",
+ "chrono",
+ "digest",
+ "flate2",
+ "isideload-cryptographic-message-syntax",
+ "isideload-x509-certificate",
+ "log",
+ "md-5",
+ "rand 0.8.5",
+ "reqwest",
+ "scroll",
+ "serde",
+ "serde-xml-rs",
+ "sha1",
+ "sha2",
+ "signature 2.2.0",
+ "thiserror 2.0.18",
+ "url",
+ "xml-rs",
+ "xz2",
+]
 
 [[package]]
 name = "isideload-cryptographic-message-syntax"
