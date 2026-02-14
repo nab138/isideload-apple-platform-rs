@@ -705,13 +705,12 @@ impl<'data> MachOSigner<'data> {
         // macOS 12 "when signing for all platforms." `codesign` appears to add the DER
         // representation whenever entitlements are present, but only if the current binary is
         // an executable (.filetype == MH_EXECUTE).
-        if is_executable {
-            if let Some(value) = settings.entitlements_plist(SettingsScope::Main) {
+        if is_executable
+            && let Some(value) = settings.entitlements_plist(SettingsScope::Main) {
                 let blob = EntitlementsDerBlob::from_plist(value)?;
 
                 res.push((CodeSigningSlot::EntitlementsDer, blob.into()));
             }
-        }
 
         if let Some(constraints) = settings.launch_constraints_self(SettingsScope::Main) {
             let blob = ConstraintsDerBlob::from_encoded_constraints(constraints)?;

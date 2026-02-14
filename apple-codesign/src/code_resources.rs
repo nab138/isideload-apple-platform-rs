@@ -923,9 +923,9 @@ pub fn normalized_resources_path(path: impl AsRef<Path>) -> String {
 
     // The Contents/ prefix is also removed for pattern matching and references in the
     // resources file.
-    let path = path.strip_prefix("Contents/").unwrap_or(&path).to_string();
+    
 
-    path
+    path.strip_prefix("Contents/").unwrap_or(&path).to_string()
 }
 
 /// Find the first rule matching a given path.

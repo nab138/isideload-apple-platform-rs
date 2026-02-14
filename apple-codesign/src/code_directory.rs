@@ -513,12 +513,11 @@ impl<'a> Blob<'a> for CodeDirectoryBlob<'a> {
         cursor.write_all(b"\0")?;
 
         let team_offset = cursor.position();
-        if team_offset_cursor_position.is_some() {
-            if let Some(team_name) = &self.team_name {
+        if team_offset_cursor_position.is_some()
+            && let Some(team_name) = &self.team_name {
                 cursor.write_all(team_name.as_bytes())?;
                 cursor.write_all(b"\0")?;
             }
-        }
 
         // TODO consider aligning cursor on page boundary here for performance?
 
@@ -563,12 +562,11 @@ impl<'a> Blob<'a> for CodeDirectoryBlob<'a> {
             return Err(AppleCodesignError::Unimplemented("scatter offset"));
         }
 
-        if let Some(offset) = team_offset_cursor_position {
-            if self.team_name.is_some() {
+        if let Some(offset) = team_offset_cursor_position
+            && self.team_name.is_some() {
                 cursor.set_position(offset);
                 cursor.iowrite_with(team_offset as u32 + 8, scroll::BE)?;
             }
-        }
 
         Ok(cursor.into_inner())
     }
