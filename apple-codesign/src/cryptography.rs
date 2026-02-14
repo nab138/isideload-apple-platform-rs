@@ -6,17 +6,18 @@
 
 use {
     crate::{
-        remote_signing::{session_negotiation::PublicKeyPeerDecrypt, RemoteSignError},
         AppleCodesignError,
+        remote_signing::{RemoteSignError, session_negotiation::PublicKeyPeerDecrypt},
     },
     apple_xar::table_of_contents::ChecksumType as XarChecksumType,
+    aws_lc_rs::signature::{Ed25519KeyPair, KeyPair},
     bytes::Bytes,
     clap::ValueEnum,
-    der::{asn1, Decode, Document, Encode, SecretDocument},
+    der::{Decode, Document, Encode, SecretDocument, asn1},
     digest::DynDigest,
     elliptic_curve::{
-        sec1::{FromEncodedPoint, ModulusSize, ToEncodedPoint},
         AffinePoint, Curve, CurveArithmetic, FieldBytesSize, SecretKey as ECSecretKey,
+        sec1::{FromEncodedPoint, ModulusSize, ToEncodedPoint},
     },
     oid_registry::{
         OID_EC_P256, OID_KEY_TYPE_EC_PUBLIC_KEY, OID_PKCS1_RSAENCRYPTION, OID_SIG_ED25519,
@@ -24,8 +25,7 @@ use {
     p256::NistP256,
     pkcs1::RsaPrivateKey,
     pkcs8::{EncodePrivateKey, ObjectIdentifier, PrivateKeyInfo},
-    ring::signature::{Ed25519KeyPair, KeyPair},
-    rsa::{pkcs1::DecodeRsaPrivateKey, BigUint, Oaep, RsaPrivateKey as RsaConstructedKey},
+    rsa::{BigUint, Oaep, RsaPrivateKey as RsaConstructedKey, pkcs1::DecodeRsaPrivateKey},
     signature::Signer,
     spki::AlgorithmIdentifier,
     std::{
@@ -481,8 +481,7 @@ impl InMemoryPrivateKey {
 }
 
 /// Represents a digest type encountered in code signature data structures.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
-#[derive(Default)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum, Default)]
 pub enum DigestType {
     None,
     Sha1,
@@ -494,7 +493,6 @@ pub enum DigestType {
     #[value(skip)]
     Unknown(u8),
 }
-
 
 impl TryFrom<DigestType> for DigestAlgorithm {
     type Error = AppleCodesignError;
@@ -575,17 +573,17 @@ impl DigestType {
     }
 
     /// Obtain a hasher for this digest type.
-    pub fn as_hasher(&self) -> Result<ring::digest::Context, AppleCodesignError> {
+    pub fn as_hasher(&self) -> Result<aws_lc_rs::digest::Context, AppleCodesignError> {
         match self {
             Self::None => Err(AppleCodesignError::DigestUnknownAlgorithm),
-            Self::Sha1 => Ok(ring::digest::Context::new(
-                &ring::digest::SHA1_FOR_LEGACY_USE_ONLY,
+            Self::Sha1 => Ok(aws_lc_rs::digest::Context::new(
+                &aws_lc_rs::digest::SHA1_FOR_LEGACY_USE_ONLY,
             )),
             Self::Sha256 | Self::Sha256Truncated => {
-                Ok(ring::digest::Context::new(&ring::digest::SHA256))
+                Ok(aws_lc_rs::digest::Context::new(&aws_lc_rs::digest::SHA256))
             }
-            Self::Sha384 => Ok(ring::digest::Context::new(&ring::digest::SHA384)),
-            Self::Sha512 => Ok(ring::digest::Context::new(&ring::digest::SHA512)),
+            Self::Sha384 => Ok(aws_lc_rs::digest::Context::new(&aws_lc_rs::digest::SHA384)),
+            Self::Sha512 => Ok(aws_lc_rs::digest::Context::new(&aws_lc_rs::digest::SHA512)),
             Self::Unknown(_) => Err(AppleCodesignError::DigestUnknownAlgorithm),
         }
     }
@@ -927,7 +925,7 @@ fn mgf1_xor(out: &mut [u8], digest: &mut dyn DynDigest, seed: &[u8]) {
 mod test {
     use {
         super::*,
-        ring::signature::{EcdsaKeyPair, KeyPair, RsaKeyPair},
+        aws_lc_rs::signature::{EcdsaKeyPair, KeyPair, RsaKeyPair},
         x509_certificate::Sign,
     };
 
@@ -999,9 +997,8 @@ mod test {
     #[test]
     fn ecdsa_key_operations_secp256() -> Result<(), AppleCodesignError> {
         let ring_key = EcdsaKeyPair::from_pkcs8(
-            &ring::signature::ECDSA_P256_SHA256_ASN1_SIGNING,
+            &aws_lc_rs::signature::ECDSA_P256_SHA256_ASN1_SIGNING,
             SECP256_PKCS8_DER,
-            &ring::rand::SystemRandom::new(),
         )
         .unwrap();
         let ring_public_key_data = ring_key.public_key().as_ref();

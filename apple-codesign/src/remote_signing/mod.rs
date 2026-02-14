@@ -32,9 +32,6 @@ pub enum RemoteSignError {
     #[error("joining state not wanted for this session type: {0}")]
     SessionJoinUnwantedState(String),
 
-    #[error("session join string error: {0}")]
-    SessionJoinString(String),
-
     #[error("base64 decode error: {0}")]
     Base64(#[from] base64::DecodeError),
 
@@ -46,9 +43,6 @@ pub enum RemoteSignError {
 
     #[error("JSON serialization error: {0}")]
     SerdeJson(#[from] serde_json::Error),
-
-    #[error("SPAKE error: {0}")]
-    Spake(spake2::Error),
 
     #[error("SPKI error: {0}")]
     Spki(#[from] spki::Error),

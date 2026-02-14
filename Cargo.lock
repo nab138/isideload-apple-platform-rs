@@ -140,7 +140,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.18",
- "x509-certificate 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "x509-certificate",
 ]
 
 [[package]]
@@ -177,6 +177,7 @@ dependencies = [
  "apple-flat-package",
  "apple-xar",
  "aws-config",
+ "aws-lc-rs",
  "aws-sdk-s3",
  "aws-smithy-http",
  "aws-smithy-types",
@@ -186,7 +187,6 @@ dependencies = [
  "bytes",
  "chrono",
  "clap",
- "cryptographic-message-syntax",
  "der 0.7.10",
  "dialoguer",
  "difference",
@@ -201,9 +201,10 @@ dependencies = [
  "goblin",
  "hex",
  "indoc",
+ "isideload-cryptographic-message-syntax",
+ "isideload-x509-certificate",
  "log",
  "md-5",
- "minicbor",
  "num-traits",
  "object",
  "oid-registry",
@@ -219,7 +220,6 @@ dependencies = [
  "rayon",
  "regex",
  "reqwest",
- "ring",
  "rsa",
  "scroll",
  "security-framework 2.11.1",
@@ -231,7 +231,6 @@ dependencies = [
  "sha2",
  "signature 2.2.0",
  "simple-file-manifest",
- "spake2",
  "spki 0.7.3",
  "subtle",
  "tar",
@@ -244,7 +243,6 @@ dependencies = [
  "widestring",
  "windows-sys 0.59.0",
  "x509",
- "x509-certificate 0.25.0",
  "xml-rs",
  "yasna",
  "yubikey",
@@ -301,9 +299,10 @@ dependencies = [
  "bcder",
  "bzip2",
  "chrono",
- "cryptographic-message-syntax",
  "digest",
  "flate2",
+ "isideload-cryptographic-message-syntax",
+ "isideload-x509-certificate",
  "log",
  "md-5",
  "rand 0.8.5",
@@ -316,7 +315,6 @@ dependencies = [
  "signature 2.2.0",
  "thiserror 2.0.18",
  "url",
- "x509-certificate 0.25.0",
  "xml-rs",
  "xz2",
 ]
@@ -435,6 +433,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b7b6141e96a8c160799cc2d5adecd5cbbe5054cb8c7c4af53da0f83bb7ad256"
 dependencies = [
  "aws-lc-sys",
+ "untrusted 0.7.1",
  "zeroize",
 ]
 
@@ -1299,47 +1298,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cryptographic-message-syntax"
-version = "0.28.0"
-dependencies = [
- "bcder",
- "bytes",
- "chrono",
- "hex",
- "pem",
- "reqwest",
- "ring",
- "signature 2.2.0",
- "x509-certificate 0.25.0",
-]
-
-[[package]]
-name = "curve25519-dalek"
-version = "4.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97fb8b7c4503de7d6ae7b42ab72a5a59857b4c937ec27a3d4539dba95b5ab2be"
-dependencies = [
- "cfg-if",
- "cpufeatures",
- "curve25519-dalek-derive",
- "fiat-crypto",
- "rand_core 0.6.4",
- "rustc_version",
- "subtle",
-]
-
-[[package]]
-name = "curve25519-dalek-derive"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f46882e17999c6cc590af592290432be3bce0428cb0d5f8b6715e4dc7b383eb3"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "der"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1615,12 +1573,6 @@ dependencies = [
  "rand_core 0.6.4",
  "subtle",
 ]
-
-[[package]]
-name = "fiat-crypto"
-version = "0.2.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28dea519a9695b9977216879a3ebfddf92f1c08c05d984f8996aecd6ecdc811d"
 
 [[package]]
 name = "figment"
@@ -2391,6 +2343,42 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
 
 [[package]]
+name = "isideload-cryptographic-message-syntax"
+version = "0.28.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eef54b517a50bcd4abdb198c600976abc97cde30d71c37e1a0aa0652089ab128"
+dependencies = [
+ "aws-lc-rs",
+ "bcder",
+ "bytes",
+ "chrono",
+ "hex",
+ "isideload-x509-certificate",
+ "pem",
+ "reqwest",
+ "signature 2.2.0",
+]
+
+[[package]]
+name = "isideload-x509-certificate"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b8f6640892423dd86bac32808e94d586595b3e09a8e3b99ca101dc570d084bc"
+dependencies = [
+ "aws-lc-rs",
+ "bcder",
+ "bytes",
+ "chrono",
+ "der 0.7.10",
+ "hex",
+ "pem",
+ "signature 2.2.0",
+ "spki 0.7.3",
+ "thiserror 2.0.18",
+ "zeroize",
+]
+
+[[package]]
 name = "itertools"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2609,26 +2597,6 @@ name = "memchr"
 version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8ca58f447f06ed17d5fc4043ce1b10dd205e060fb3ce5b979b8ed8e59ff3f79"
-
-[[package]]
-name = "minicbor"
-version = "0.25.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0452a60c1863c1f50b5f77cd295e8d2786849f35883f0b9e18e7e6e1b5691b0"
-dependencies = [
- "minicbor-derive",
-]
-
-[[package]]
-name = "minicbor-derive"
-version = "0.15.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd2209fff77f705b00c737016a48e73733d7fbccb8b007194db148f03561fb70"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
 
 [[package]]
 name = "minimal-lexical"
@@ -3446,7 +3414,7 @@ dependencies = [
  "cfg-if",
  "getrandom 0.2.17",
  "libc",
- "untrusted",
+ "untrusted 0.9.0",
  "windows-sys 0.52.0",
 ]
 
@@ -3590,7 +3558,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b6275d1ee7a1cd780b64aca7726599a1dbc893b1e64144529e55c3c2f745765"
 dependencies = [
  "ring",
- "untrusted",
+ "untrusted 0.9.0",
 ]
 
 [[package]]
@@ -3602,7 +3570,7 @@ dependencies = [
  "aws-lc-rs",
  "ring",
  "rustls-pki-types",
- "untrusted",
+ "untrusted 0.9.0",
 ]
 
 [[package]]
@@ -3671,7 +3639,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "da046153aa2352493d6cb7da4b6e5c0c057d8a1d0a9aa8560baffdd945acd414"
 dependencies = [
  "ring",
- "untrusted",
+ "untrusted 0.9.0",
 ]
 
 [[package]]
@@ -4022,18 +3990,6 @@ checksum = "86f4aa3ad99f2088c990dfa82d367e19cb29268ed67c574d10d0a4bfe71f07e0"
 dependencies = [
  "libc",
  "windows-sys 0.60.2",
-]
-
-[[package]]
-name = "spake2"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5482afe85a0b6ce956c945401598dbc527593c77ba51d0a87a586938b1b893a"
-dependencies = [
- "curve25519-dalek",
- "hkdf",
- "rand_core 0.6.4",
- "sha2",
 ]
 
 [[package]]
@@ -4569,6 +4525,12 @@ name = "unsafe-libyaml"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "673aac59facbab8a9007c7f6108d11f63b603f7cabff99fabf650fea5c32b861"
+
+[[package]]
+name = "untrusted"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a156c684c91ea7d62626509bce3cb4e1d9ed5c4d978f7b4352658f96a4c26b4a"
 
 [[package]]
 name = "untrusted"
@@ -5317,23 +5279,6 @@ dependencies = [
  "signature 2.2.0",
  "spki 0.7.3",
  "tls_codec",
-]
-
-[[package]]
-name = "x509-certificate"
-version = "0.25.0"
-dependencies = [
- "bcder",
- "bytes",
- "chrono",
- "der 0.7.10",
- "hex",
- "pem",
- "ring",
- "signature 2.2.0",
- "spki 0.7.3",
- "thiserror 2.0.18",
- "zeroize",
 ]
 
 [[package]]
