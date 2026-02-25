@@ -9,7 +9,6 @@ members = [
     'apple-flat-package',
     'apple-sdk',
     'apple-xar',
-    'app-store-connect',
     'cpio-archive',
 ]
 resolver = "2"

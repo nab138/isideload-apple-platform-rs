@@ -9,7 +9,7 @@ use {
         bundle_signing::BundleSigner,
         dmg::DmgSigner,
         error::AppleCodesignError,
-        macho_signing::{write_macho_file, MachOSigner},
+        macho_signing::{MachOSigner, write_macho_file},
         reader::PathType,
         signing_settings::{SettingsScope, SigningSettings},
     },
@@ -210,7 +210,6 @@ impl<'key> UnifiedSigner<'key> {
                 &mut fh,
                 signing_key,
                 signing_cert,
-                self.settings.time_stamp_url(),
                 self.settings.certificate_chain().iter().cloned(),
             )?;
         }

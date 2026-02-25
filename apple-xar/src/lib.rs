@@ -55,10 +55,6 @@ pub enum Error {
     #[cfg(feature = "signing")]
     #[error("CMS error: {0}")]
     Cms(#[from] cryptographic_message_syntax::CmsError),
-
-    #[cfg(feature = "signing")]
-    #[error("HTTP error: {0}")]
-    Reqwest(#[from] reqwest::Error),
 }
 
 pub type XarResult<T> = std::result::Result<T, Error>;

@@ -45,11 +45,11 @@ and invalidate prior signatures.
 
 use {
     crate::{
+        AppleCodesignError, SettingsScope, SigningSettings,
         code_directory::{CodeDirectoryBlob, CodeSignatureFlags},
         cryptography::{Digest, DigestType},
         embedded_signature::{BlobData, CodeSigningSlot, EmbeddedSignature, RequirementSetBlob},
         embedded_signature_builder::EmbeddedSignatureBuilder,
-        AppleCodesignError, SettingsScope, SigningSettings,
     },
     log::warn,
     scroll::{Pread, Pwrite, SizeWith},
@@ -342,7 +342,6 @@ impl DmgSigner {
             builder.create_cms_signature(
                 signing_key,
                 signing_cert,
-                settings.time_stamp_url(),
                 settings.certificate_chain().iter().cloned(),
                 settings.signing_time(),
             )?;

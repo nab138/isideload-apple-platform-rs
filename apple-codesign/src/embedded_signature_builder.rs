@@ -8,19 +8,18 @@ use {
     crate::{
         code_directory::CodeDirectoryBlob,
         embedded_signature::{
-            create_superblob, Blob, BlobData, BlobWrapperBlob, CodeSigningMagic, CodeSigningSlot,
-            EmbeddedSignature,
+            Blob, BlobData, BlobWrapperBlob, CodeSigningMagic, CodeSigningSlot, EmbeddedSignature,
+            create_superblob,
         },
         error::AppleCodesignError,
     },
-    bcder::{encode::PrimitiveContent, Oid},
+    bcder::{Oid, encode::PrimitiveContent},
     bytes::Bytes,
-    cryptographic_message_syntax::{asn1::rfc5652::OID_ID_DATA, SignedDataBuilder, SignerBuilder},
+    cryptographic_message_syntax::{SignedDataBuilder, SignerBuilder, asn1::rfc5652::OID_ID_DATA},
     log::{info, warn},
-    reqwest::Url,
     std::collections::BTreeMap,
     x509_certificate::{
-        rfc5652::AttributeValue, CapturedX509Certificate, DigestAlgorithm, KeyInfoSigner,
+        CapturedX509Certificate, DigestAlgorithm, KeyInfoSigner, rfc5652::AttributeValue,
     },
 };
 
@@ -34,8 +33,7 @@ pub const CD_DIGESTS_PLIST_OID: bcder::ConstOid = Oid(&[42, 134, 72, 134, 247, 9
 /// 1.2.840.113635.100.9.2
 pub const CD_DIGESTS_OID: bcder::ConstOid = Oid(&[42, 134, 72, 134, 247, 99, 100, 9, 2]);
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-#[derive(Default)]
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
 enum BlobsState {
     #[default]
     Empty,
@@ -44,7 +42,6 @@ enum BlobsState {
     SignatureAdded,
     TicketAdded,
 }
-
 
 /// An entity for producing and writing [EmbeddedSignature].
 ///
@@ -213,7 +210,6 @@ impl<'a> EmbeddedSignatureBuilder<'a> {
         &mut self,
         signing_key: &dyn KeyInfoSigner,
         signing_cert: &CapturedX509Certificate,
-        time_stamp_url: Option<&Url>,
         certificates: impl Iterator<Item = CapturedX509Certificate>,
         signing_time: Option<chrono::DateTime<chrono::Utc>>,
     ) -> Result<(), AppleCodesignError> {
@@ -278,13 +274,6 @@ impl<'a> EmbeddedSignatureBuilder<'a> {
             );
 
         let signer = signer.signed_attribute(Oid(CD_DIGESTS_OID.as_ref().into()), attributes);
-
-        let signer = if let Some(time_stamp_url) = time_stamp_url {
-            info!("Using time-stamp server {}", time_stamp_url);
-            signer.time_stamp_url(time_stamp_url.clone())?
-        } else {
-            signer
-        };
 
         let builder = SignedDataBuilder::default()
             // The default is `signed-data`. But Apple appears to use the `data` content-type,

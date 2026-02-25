@@ -34,7 +34,6 @@ use {
         fmt::Debug,
         io::{Read, Seek, Write},
     },
-    url::Url,
     x509_certificate::{CapturedX509Certificate, KeyInfoSigner},
 };
 
@@ -66,7 +65,6 @@ impl<R: Read + Seek + Sized + Debug> XarSigner<R> {
         writer: &mut W,
         signing_key: &dyn KeyInfoSigner,
         signing_cert: &CapturedX509Certificate,
-        time_stamp_url: Option<&Url>,
         certificates: impl Iterator<Item = CapturedX509Certificate>,
     ) -> XarResult<()> {
         let extra_certificates = certificates.collect::<Vec<_>>();
@@ -89,13 +87,6 @@ impl<R: Read + Seek + Sized + Debug> XarSigner<R> {
         info!("performing empty CMS signature to calculate data length");
         let signer =
             SignerBuilder::new(signing_key, signing_cert.clone()).message_id_content(empty_digest);
-
-        let signer = if let Some(time_stamp_url) = time_stamp_url {
-            info!("using time-stamp server {}", time_stamp_url);
-            signer.time_stamp_url(time_stamp_url.clone())?
-        } else {
-            signer
-        };
 
         let cms_signature_len = SignedDataBuilder::default()
             .content_type(Oid(OID_ID_DATA.as_ref().into()))

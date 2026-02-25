@@ -187,9 +187,6 @@ pub enum AppleCodesignError {
     #[error("invalid builder operation: {0}")]
     SignatureBuilder(&'static str),
 
-    #[error("HTTP error: {0}")]
-    Reqwest(#[from] reqwest::Error),
-
     #[error("unknown digest algorithm")]
     DigestUnknownAlgorithm,
 
@@ -370,18 +367,6 @@ pub enum AppleCodesignError {
 
     #[error("remote signing error: {0}")]
     RemoteSign(#[from] RemoteSignError),
-
-    #[cfg(feature = "notarize")]
-    #[error("bytestream creation error: {0}")]
-    AwsByteStream(#[from] aws_smithy_types::byte_stream::error::Error),
-
-    #[cfg(feature = "notarize")]
-    #[error("s3 upload error: {0}")]
-    AwsS3PutObject(
-        aws_smithy_types::error::display::DisplayErrorContext<
-            aws_sdk_s3::error::SdkError<aws_sdk_s3::operation::put_object::PutObjectError>,
-        >,
-    ),
 
     #[error("bad time value")]
     BadTime,

@@ -20,7 +20,6 @@ use {
         CPU_TYPE_ARM, CPU_TYPE_ARM64, CPU_TYPE_ARM64_32, CPU_TYPE_X86_64, CpuType,
     },
     log::{error, info},
-    reqwest::{IntoUrl, Url},
     std::{
         collections::{BTreeMap, BTreeSet},
         fmt::Formatter,
@@ -299,7 +298,6 @@ pub struct SigningSettings<'key> {
     // Global settings.
     signing_key: Option<(&'key dyn KeyInfoSigner, CapturedX509Certificate)>,
     certificates: Vec<CapturedX509Certificate>,
-    time_stamp_url: Option<Url>,
     signing_time: Option<chrono::DateTime<chrono::Utc>>,
     path_exclusion_patterns: Vec<Pattern>,
     shallow: bool,
@@ -418,25 +416,6 @@ impl<'key> SigningSettings<'key> {
         data: impl AsRef<[u8]>,
     ) -> Result<(), AppleCodesignError> {
         self.chain_certificate(CapturedX509Certificate::from_pem(data.as_ref())?);
-
-        Ok(())
-    }
-
-    /// Obtain the Time-Stamp Protocol server URL.
-    pub fn time_stamp_url(&self) -> Option<&Url> {
-        self.time_stamp_url.as_ref()
-    }
-
-    /// Set the Time-Stamp Protocol server URL to use to generate a Time-Stamp Token.
-    ///
-    /// When set and a signing key-pair is defined, the server will be contacted during
-    /// signing and a Time-Stamp Token will be embedded in the cryptographic signature.
-    /// This Time-Stamp Token is a cryptographic proof that someone in possession of
-    /// the signing key-pair produced the cryptographic signature at a given time. It
-    /// facilitates validation of the signing time via an independent (presumably trusted)
-    /// entity.
-    pub fn set_time_stamp_url(&mut self, url: impl IntoUrl) -> Result<(), AppleCodesignError> {
-        self.time_stamp_url = Some(url.into_url()?);
 
         Ok(())
     }
@@ -1273,7 +1252,6 @@ impl<'key> SigningSettings<'key> {
         Self {
             signing_key: self.signing_key.clone(),
             certificates: self.certificates.clone(),
-            time_stamp_url: self.time_stamp_url.clone(),
             signing_time: self.signing_time,
             team_id: self.team_id.clone(),
             path_exclusion_patterns: self.path_exclusion_patterns.clone(),
@@ -1418,13 +1396,6 @@ impl<'key> SigningSettings<'key> {
                 );
                 error!(
                     "hint: use a `Developer ID Application`, `Developer ID Installer`, or `Developer ID Kernel` certificate"
-                );
-                have_error = true;
-            }
-
-            if self.time_stamp_url().is_none() {
-                error!(
-                    "--for-notarization requires use of a time-stamp protocol server; none configured"
                 );
                 have_error = true;
             }

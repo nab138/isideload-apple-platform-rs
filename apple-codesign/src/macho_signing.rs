@@ -18,7 +18,7 @@ use {
         embedded_signature_builder::EmbeddedSignatureBuilder,
         entitlements::plist_to_executable_segment_flags,
         error::AppleCodesignError,
-        macho::{semver_to_macho_target_version, MachFile, MachOBinary},
+        macho::{MachFile, MachOBinary, semver_to_macho_target_version},
         macho_universal::create_universal_macho,
         policy::derive_designated_requirements,
         signing_settings::{DesignatedRequirementMode, SettingsScope, SigningSettings},
@@ -26,13 +26,13 @@ use {
     goblin::mach::{
         constants::{SEG_LINKEDIT, SEG_PAGEZERO},
         load_command::{
-            CommandVariant, LinkeditDataCommand, SegmentCommand32, SegmentCommand64,
-            LC_CODE_SIGNATURE, SIZEOF_LINKEDIT_DATA_COMMAND,
+            CommandVariant, LC_CODE_SIGNATURE, LinkeditDataCommand, SIZEOF_LINKEDIT_DATA_COMMAND,
+            SegmentCommand32, SegmentCommand64,
         },
         parse_magic_and_ctx,
     },
     log::{debug, info, warn},
-    scroll::{ctx::SizeWith, IOwrite},
+    scroll::{IOwrite, ctx::SizeWith},
     std::{borrow::Cow, cmp::Ordering, collections::HashMap, io::Write, path::Path},
 };
 
@@ -433,7 +433,6 @@ impl<'data> MachOSigner<'data> {
             builder.create_cms_signature(
                 signing_key,
                 signing_cert,
-                settings.time_stamp_url(),
                 settings.certificate_chain().iter().cloned(),
                 settings.signing_time(),
             )?;
@@ -555,7 +554,9 @@ impl<'data> MachOSigner<'data> {
                 );
                 Some(semver_to_macho_target_version(&target.sdk_version))
             } else {
-                warn!("hardened runtime version required but unable to derive suitable version; signature will likely fail Apple checks");
+                warn!(
+                    "hardened runtime version required but unable to derive suitable version; signature will likely fail Apple checks"
+                );
                 None
             }
         } else {
@@ -608,7 +609,9 @@ impl<'data> MachOSigner<'data> {
         let team_name = settings.team_id().map(|x| Cow::Owned(x.to_string()));
 
         if team_name.is_some() && !settings.signing_certificate_apple_signed() {
-            warn!("signing without an Apple signed certificate but signing settings contain a team name; signature varies from Apple's tooling");
+            warn!(
+                "signing without an Apple signed certificate but signing settings contain a team name; signature varies from Apple's tooling"
+            );
         }
 
         let mut cd = CodeDirectoryBlob {
@@ -705,12 +708,11 @@ impl<'data> MachOSigner<'data> {
         // macOS 12 "when signing for all platforms." `codesign` appears to add the DER
         // representation whenever entitlements are present, but only if the current binary is
         // an executable (.filetype == MH_EXECUTE).
-        if is_executable
-            && let Some(value) = settings.entitlements_plist(SettingsScope::Main) {
-                let blob = EntitlementsDerBlob::from_plist(value)?;
+        if is_executable && let Some(value) = settings.entitlements_plist(SettingsScope::Main) {
+            let blob = EntitlementsDerBlob::from_plist(value)?;
 
-                res.push((CodeSigningSlot::EntitlementsDer, blob.into()));
-            }
+            res.push((CodeSigningSlot::EntitlementsDer, blob.into()));
+        }
 
         if let Some(constraints) = settings.launch_constraints_self(SettingsScope::Main) {
             let blob = ConstraintsDerBlob::from_encoded_constraints(constraints)?;
@@ -772,18 +774,6 @@ impl<'data> MachOSigner<'data> {
         // Long certificate chains could blow up the size. Account for those.
         for cert in settings.certificate_chain() {
             size += cert.constructed_data().len();
-        }
-
-        // Resize space for CMS timestamp token, if being generated.
-        //
-        // We used to actually call out to a remote server here and obtain a
-        // placeholder token. But this seemed excessive, especially since we did
-        // it on every signing operation.
-        //
-        // Apple's TSTs are ~4200 bytes in size. We approximately double that
-        // to give us some buffer.
-        if settings.time_stamp_url().is_some() {
-            size += 8192;
         }
 
         // Align on 1k boundaries just because.
