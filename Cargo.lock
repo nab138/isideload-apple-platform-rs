@@ -1344,7 +1344,7 @@ dependencies = [
 
 [[package]]
 name = "isideload-apple-flat-package"
-version = "0.20.1"
+version = "0.20.2"
 dependencies = [
  "cpio-archive",
  "flate2",
