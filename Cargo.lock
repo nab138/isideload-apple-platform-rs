@@ -1357,7 +1357,7 @@ dependencies = [
 
 [[package]]
 name = "isideload-apple-xar"
-version = "0.20.1"
+version = "0.20.2"
 dependencies = [
  "base64",
  "bcder",
@@ -1383,9 +1383,9 @@ dependencies = [
 
 [[package]]
 name = "isideload-cryptographic-message-syntax"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eef54b517a50bcd4abdb198c600976abc97cde30d71c37e1a0aa0652089ab128"
+checksum = "1adacd3764e74e0041ac53c0dbb4e5a2d6833834afdbd58caaff272cd703f82f"
 dependencies = [
  "aws-lc-rs",
  "bcder",

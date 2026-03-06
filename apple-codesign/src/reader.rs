@@ -9,7 +9,7 @@ use {
         certificate::AppleCertificate,
         code_directory::CodeDirectoryBlob,
         cryptography::DigestType,
-        dmg::{path_is_dmg, DmgReader},
+        dmg::{DmgReader, path_is_dmg},
         embedded_signature::{BlobEntry, EmbeddedSignature},
         embedded_signature_builder::{CD_DIGESTS_OID, CD_DIGESTS_PLIST_OID},
         error::{AppleCodesignError, Result},
