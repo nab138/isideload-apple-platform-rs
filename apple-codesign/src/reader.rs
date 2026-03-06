@@ -285,8 +285,6 @@ pub struct CmsSigner {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub cdhash_digests: Vec<(String, String)>,
     pub signature_verifies: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub time_stamp_token: Option<CmsSignature>,
 }
 
 impl CmsSigner {
@@ -298,7 +296,6 @@ impl CmsSigner {
         let mut content_type = None;
         let mut message_digest = None;
         let mut signing_time = None;
-        let mut time_stamp_token = None;
         let mut cdhash_plist = vec![];
         let mut cdhash_digests = vec![];
 
@@ -360,10 +357,6 @@ impl CmsSigner {
         // conform to spec.
         attributes.sort();
 
-        if let Some(tsk) = signer_info.time_stamp_token_signed_data()? {
-            time_stamp_token = Some(tsk.try_into()?);
-        }
-
         Ok(Self {
             issuer: signer_info
                 .certificate_issuer_and_serial()
@@ -382,8 +375,6 @@ impl CmsSigner {
             signature_verifies: signer_info
                 .verify_signature_with_signed_data(signed_data)
                 .is_ok(),
-
-            time_stamp_token,
         })
     }
 }
