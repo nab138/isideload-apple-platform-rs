@@ -1,6 +1,6 @@
 [package]
 name = "isideload-apple-codesign"
-version = "0.29.3"
+version = "0.29.4"
 authors = ["Nicholas Sharp <nab@nabdev.me>"]
 edition = "2024"
 license = "MPL-2.0"
@@ -72,6 +72,7 @@ zeroize = { version = "1.8.1", features = ["zeroize_derive"] }
 zip = { version = "8", default-features = false, features = ["deflate"] }
 zip_structs = "0.2.1"
 aws-lc-rs = "1.15.4"
+p12-keystore = "0.2.1"
 
 [dependencies.apple-bundles]
 path = "../apple-bundles"
