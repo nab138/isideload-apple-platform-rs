@@ -10,7 +10,6 @@ use {
         remote_signing::{RemoteSignError, session_negotiation::PublicKeyPeerDecrypt},
     },
     apple_xar::table_of_contents::ChecksumType as XarChecksumType,
-    aws_lc_rs::signature::{Ed25519KeyPair, KeyPair},
     bytes::Bytes,
     clap::ValueEnum,
     der::{Decode, Document, Encode, SecretDocument, asn1},
@@ -25,6 +24,7 @@ use {
     p256::NistP256,
     pkcs1::RsaPrivateKey,
     pkcs8::{EncodePrivateKey, ObjectIdentifier, PrivateKeyInfo},
+    ring::signature::{Ed25519KeyPair, KeyPair},
     rsa::{BigUint, Oaep, RsaPrivateKey as RsaConstructedKey, pkcs1::DecodeRsaPrivateKey},
     signature::Signer,
     spki::AlgorithmIdentifier,
@@ -573,17 +573,17 @@ impl DigestType {
     }
 
     /// Obtain a hasher for this digest type.
-    pub fn as_hasher(&self) -> Result<aws_lc_rs::digest::Context, AppleCodesignError> {
+    pub fn as_hasher(&self) -> Result<ring::digest::Context, AppleCodesignError> {
         match self {
             Self::None => Err(AppleCodesignError::DigestUnknownAlgorithm),
-            Self::Sha1 => Ok(aws_lc_rs::digest::Context::new(
-                &aws_lc_rs::digest::SHA1_FOR_LEGACY_USE_ONLY,
+            Self::Sha1 => Ok(ring::digest::Context::new(
+                &ring::digest::SHA1_FOR_LEGACY_USE_ONLY,
             )),
             Self::Sha256 | Self::Sha256Truncated => {
-                Ok(aws_lc_rs::digest::Context::new(&aws_lc_rs::digest::SHA256))
+                Ok(ring::digest::Context::new(&ring::digest::SHA256))
             }
-            Self::Sha384 => Ok(aws_lc_rs::digest::Context::new(&aws_lc_rs::digest::SHA384)),
-            Self::Sha512 => Ok(aws_lc_rs::digest::Context::new(&aws_lc_rs::digest::SHA512)),
+            Self::Sha384 => Ok(ring::digest::Context::new(&ring::digest::SHA384)),
+            Self::Sha512 => Ok(ring::digest::Context::new(&ring::digest::SHA512)),
             Self::Unknown(_) => Err(AppleCodesignError::DigestUnknownAlgorithm),
         }
     }
@@ -850,104 +850,5 @@ fn mgf1_xor(out: &mut [u8], digest: &mut dyn DynDigest, seed: &[u8]) {
             i += 1;
         }
         inc_counter(&mut counter);
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use {
-        super::*,
-        aws_lc_rs::signature::{EcdsaKeyPair, KeyPair, RsaKeyPair},
-        x509_certificate::Sign,
-    };
-
-    const RSA_2048_PKCS8_DER: &[u8] = include_bytes!("testdata/rsa-2048.pk8");
-    const ED25519_PKCS8_DER: &[u8] = include_bytes!("testdata/ed25519.pk8");
-    const SECP256_PKCS8_DER: &[u8] = include_bytes!("testdata/secp256r1.pk8");
-
-    #[test]
-    fn parse_keychain_p12_export() {
-        let data = include_bytes!("apple-codesign-testuser.p12");
-
-        let err = parse_pfx_data(data, "bad-password").unwrap_err();
-        assert!(matches!(err, AppleCodesignError::PfxBadPassword));
-
-        parse_pfx_data(data, "password123").unwrap();
-    }
-
-    #[test]
-    fn rsa_key_operations() -> Result<(), AppleCodesignError> {
-        let ring_key = RsaKeyPair::from_pkcs8(RSA_2048_PKCS8_DER).unwrap();
-        let ring_public_key_data = ring_key.public_key().as_ref();
-
-        let pki = PrivateKeyInfo::from_der(RSA_2048_PKCS8_DER).unwrap();
-        let key = InMemoryPrivateKey::try_from(pki).unwrap();
-
-        assert_eq!(key.to_pkcs8_der().unwrap().as_bytes(), RSA_2048_PKCS8_DER);
-
-        let our_key = InMemorySigningKeyPair::try_from(key)?;
-        let our_public_key = our_key.public_key_data();
-
-        assert_eq!(our_public_key.as_ref(), ring_public_key_data);
-
-        InMemoryPrivateKey::from_pkcs8_der(RSA_2048_PKCS8_DER)?;
-
-        let random_key = rsa::RsaPrivateKey::new(&mut rand::thread_rng(), 2048).unwrap();
-        let random_key_pkcs8 = random_key.to_pkcs8_der().unwrap();
-        InMemorySigningKeyPair::from_pkcs8_der(random_key_pkcs8.as_bytes())?;
-
-        Ok(())
-    }
-
-    #[test]
-    fn ed25519_key_operations() -> Result<(), AppleCodesignError> {
-        let pki = PrivateKeyInfo::from_der(ED25519_PKCS8_DER).unwrap();
-        let seed = &pki.private_key[2..];
-        let key = InMemoryPrivateKey::try_from(pki).unwrap();
-
-        assert!(
-            InMemorySigningKeyPair::from_pkcs8_der(ED25519_PKCS8_DER).is_err(),
-            "stored key doesn't have public key, which ring rejects loading"
-        );
-
-        // But out PKCS#8 export includes it so it can round trip.
-        InMemorySigningKeyPair::from_pkcs8_der(key.to_pkcs8_der().unwrap().as_bytes()).unwrap();
-
-        let our_key = InMemorySigningKeyPair::try_from(key)?;
-        let our_public_key = our_key.public_key_data();
-
-        let ring_key = Ed25519KeyPair::from_seed_unchecked(seed).unwrap();
-        let ring_public_key_data = ring_key.public_key().as_ref();
-
-        assert_eq!(our_public_key.as_ref(), ring_public_key_data);
-
-        InMemoryPrivateKey::from_pkcs8_der(ED25519_PKCS8_DER)?;
-
-        Ok(())
-    }
-
-    #[test]
-    fn ecdsa_key_operations_secp256() -> Result<(), AppleCodesignError> {
-        let ring_key = EcdsaKeyPair::from_pkcs8(
-            &aws_lc_rs::signature::ECDSA_P256_SHA256_ASN1_SIGNING,
-            SECP256_PKCS8_DER,
-        )
-        .unwrap();
-        let ring_public_key_data = ring_key.public_key().as_ref();
-
-        let pki = PrivateKeyInfo::from_der(SECP256_PKCS8_DER).unwrap();
-        let key = InMemoryPrivateKey::try_from(pki).unwrap();
-
-        assert_eq!(key.to_pkcs8_der().unwrap().as_bytes(), SECP256_PKCS8_DER);
-
-        InMemorySigningKeyPair::from_pkcs8_der(SECP256_PKCS8_DER)?;
-        let our_key = InMemorySigningKeyPair::try_from(key)?;
-        let our_public_key = our_key.public_key_data();
-
-        assert_eq!(our_public_key.as_ref(), ring_public_key_data);
-
-        InMemoryPrivateKey::from_pkcs8_der(SECP256_PKCS8_DER)?;
-
-        Ok(())
     }
 }

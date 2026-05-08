@@ -77,7 +77,7 @@ pub enum AppleCodesignError {
     CertificateUnsupportedKeyAlgorithm(KeyAlgorithm),
 
     #[error("unspecified cryptography error in certificate")]
-    CertificateRing(aws_lc_rs::error::Unspecified),
+    CertificateRing(ring::error::Unspecified),
 
     #[error("bad string value in certificate: {0:?}")]
     CertificateCharset(bcder::string::CharSetError),
