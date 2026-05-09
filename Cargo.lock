@@ -1179,7 +1179,7 @@ checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
 
 [[package]]
 name = "isideload-apple-codesign"
-version = "0.29.4"
+version = "0.29.5"
 dependencies = [
  "anyhow",
  "apple-bundles",
@@ -1259,7 +1259,7 @@ dependencies = [
 
 [[package]]
 name = "isideload-apple-flat-package"
-version = "0.20.2"
+version = "0.20.3"
 dependencies = [
  "flate2",
  "isideload-apple-xar",
@@ -1272,7 +1272,7 @@ dependencies = [
 
 [[package]]
 name = "isideload-apple-xar"
-version = "0.20.2"
+version = "0.20.3"
 dependencies = [
  "base64",
  "bcder",
