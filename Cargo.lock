@@ -141,17 +141,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "apple-bundles"
-version = "0.21.0"
-dependencies = [
- "anyhow",
- "isideload-simple-file-manifest",
- "plist",
- "tempfile",
- "walkdir",
-]
-
-[[package]]
 name = "apple-dmg"
 version = "0.5.0"
 dependencies = [
@@ -1178,11 +1167,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
 
 [[package]]
-name = "isideload-apple-codesign"
-version = "0.29.6"
+name = "isideload-apple-bundles"
+version = "0.21.0"
 dependencies = [
  "anyhow",
- "apple-bundles",
+ "isideload-simple-file-manifest",
+ "plist",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
+name = "isideload-apple-codesign"
+version = "0.29.7"
+dependencies = [
+ "anyhow",
  "base64",
  "bcder",
  "bitflags 2.11.0",
@@ -1205,6 +1204,7 @@ dependencies = [
  "goblin",
  "hex",
  "indoc",
+ "isideload-apple-bundles",
  "isideload-apple-flat-package",
  "isideload-apple-xar",
  "isideload-cryptographic-message-syntax",

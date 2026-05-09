@@ -1,6 +1,6 @@
 [package]
 name = "isideload-apple-codesign"
-version = "0.29.6"
+version = "0.29.7"
 authors = ["Nicholas Sharp <nab@nabdev.me>"]
 edition = "2024"
 license = "MPL-2.0"
@@ -76,6 +76,7 @@ p12-keystore = "0.2.1"
 [dependencies.apple-bundles]
 path = "../apple-bundles"
 version = "0.21.0"
+package = "isideload-apple-bundles"
 
 [dependencies.apple-flat-package]
 path = "../apple-flat-package"
