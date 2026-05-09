@@ -311,7 +311,7 @@ impl FileEntry {
         if let Some(link) = &self.link {
             create_symlink(dest_path, link)?;
         } else {
-            let mut fh = std::fs::File::create(&dest_path)?;
+            let mut fh = std::fs::File::create(dest_path)?;
             fh.write_all(&self.resolve_content()?)?;
             if self.executable {
                 set_executable(&mut fh)?;
@@ -621,7 +621,7 @@ impl FileManifest {
     }
 
     /// Obtain an iterator over paths and file entries in this manifest.
-    pub fn iter_entries(&self) -> std::collections::btree_map::Iter<PathBuf, FileEntry> {
+    pub fn iter_entries(&self) -> std::collections::btree_map::Iter<'_, PathBuf, FileEntry> {
         self.files.iter()
     }
 
@@ -647,16 +647,7 @@ impl FileManifest {
         let mut res = BTreeMap::new();
 
         for (path, content) in &self.files {
-            let parent = match path.parent() {
-                Some(p) => {
-                    if p == Path::new("") {
-                        None
-                    } else {
-                        Some(p)
-                    }
-                }
-                None => None,
-            };
+            let parent = path.parent().filter(|&p| p != Path::new(""));
             let filename = path.file_name().unwrap();
 
             let entry = res.entry(parent).or_insert_with(BTreeMap::new);
