@@ -26,3 +26,4 @@ package = "isideload-apple-xar"
 [dependencies.cpio-archive]
 path = "../cpio-archive"
 version = "0.10.0"
+package = "isideload-cpio-archive"

@@ -135,8 +135,8 @@ dependencies = [
  "clap",
  "crc32fast",
  "hex",
+ "isideload-simple-file-manifest",
  "scroll",
- "simple-file-manifest",
  "thiserror 2.0.18",
 ]
 
@@ -145,8 +145,8 @@ name = "apple-bundles"
 version = "0.21.0"
 dependencies = [
  "anyhow",
+ "isideload-simple-file-manifest",
  "plist",
- "simple-file-manifest",
  "tempfile",
  "walkdir",
 ]
@@ -529,16 +529,6 @@ name = "core-foundation-sys"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
-
-[[package]]
-name = "cpio-archive"
-version = "0.10.0"
-dependencies = [
- "chrono",
- "is_executable",
- "simple-file-manifest",
- "thiserror 2.0.18",
-]
 
 [[package]]
 name = "cpufeatures"
@@ -1218,6 +1208,7 @@ dependencies = [
  "isideload-apple-flat-package",
  "isideload-apple-xar",
  "isideload-cryptographic-message-syntax",
+ "isideload-simple-file-manifest",
  "isideload-x509-certificate",
  "log",
  "md-5",
@@ -1247,7 +1238,6 @@ dependencies = [
  "serde_yaml",
  "sha2",
  "signature",
- "simple-file-manifest",
  "spki",
  "subtle",
  "tar",
@@ -1271,9 +1261,9 @@ dependencies = [
 name = "isideload-apple-flat-package"
 version = "0.20.2"
 dependencies = [
- "cpio-archive",
  "flate2",
  "isideload-apple-xar",
+ "isideload-cpio-archive",
  "scroll",
  "serde",
  "serde-xml-rs",
@@ -1309,6 +1299,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "isideload-cpio-archive"
+version = "0.10.0"
+dependencies = [
+ "chrono",
+ "is_executable",
+ "isideload-simple-file-manifest",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "isideload-cryptographic-message-syntax"
 version = "0.31.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1324,6 +1324,13 @@ dependencies = [
  "pem",
  "ring",
  "signature",
+]
+
+[[package]]
+name = "isideload-simple-file-manifest"
+version = "0.11.0"
+dependencies = [
+ "tempfile",
 ]
 
 [[package]]
@@ -2520,12 +2527,6 @@ name = "simple-bytes"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c11532d9d241904f095185f35dcdaf930b1427a94d5b01d7002d74ba19b44cc4"
-
-[[package]]
-name = "simple-file-manifest"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5dd19be0257552dd56d1bb6946f89f193c6e5b9f13cc9327c4bc84a357507c74"
 
 [[package]]
 name = "smallvec"

@@ -21,5 +21,5 @@ chrono = "0.4.38"
 crc32fast = "1.4.2"
 hex = "0.4.3"
 scroll = { version = "0.12.0", features = ["derive"] }
-simple-file-manifest = "0.11.0"
+simple-file-manifest = { version = "0.11.0", path = "../simple-file-manifest-rs", package = "isideload-simple-file-manifest" }
 thiserror = "2.0.3"
