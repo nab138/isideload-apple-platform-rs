@@ -1,13 +1,8 @@
 [workspace]
 members = [
-    'apfs-derive',
-    'apfs-types',
-    'apple-bom',
     'apple-bundles',
     'apple-codesign',
-    'apple-dmg',
     'apple-flat-package',
-    'apple-sdk',
     'apple-xar',
     'cpio-archive',
     'simple-file-manifest-rs'
