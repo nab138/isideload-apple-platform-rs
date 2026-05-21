@@ -339,9 +339,9 @@ mod test {
 
         let in_path = temp_dir.path().join("original");
         let entitlements_path = temp_dir.path().join("entitlements.xml");
-        std::fs::copy(this_exe, &in_path)?;
+        isideload_vfs::fs::copy(this_exe, &in_path)?;
         {
-            let mut fh = std::fs::File::create(&entitlements_path)?;
+            let mut fh = isideload_vfs::fs::File::create(&entitlements_path)?;
             value.to_writer_xml(&mut fh)?;
         }
 
@@ -364,7 +364,7 @@ mod test {
 
         // Now extract the data from the Apple produced code signature.
 
-        let signed_exe = std::fs::read(&in_path)?;
+        let signed_exe = isideload_vfs::fs::read(&in_path)?;
         let mach = MachFile::parse(&signed_exe)?;
         let macho = mach.nth_macho(0)?;
 

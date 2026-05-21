@@ -131,7 +131,7 @@ impl DirectoryBundle {
             return Err(anyhow!("Info.plist not found; not a valid bundle"));
         };
 
-        let info_plist_data = std::fs::read(&info_plist_path)?;
+        let info_plist_data = isideload_vfs::fs::read(&info_plist_path)?;
         let cursor = std::io::Cursor::new(info_plist_data);
         let value = plist::Value::from_reader(cursor).context("parsing Info.plist")?;
         let info_plist = value
@@ -401,7 +401,7 @@ impl DirectoryBundle {
 
         let mut res = vec![];
 
-        for entry in std::fs::read_dir(self.root.join("Versions"))? {
+        for entry in isideload_vfs::fs::read_dir(self.root.join("Versions"))? {
             let entry = entry?;
             let metadata = entry.metadata()?;
 
@@ -509,7 +509,7 @@ impl<'a> DirectoryBundleFile<'a> {
         let metadata = self.metadata()?;
 
         if metadata.file_type().is_symlink() {
-            Ok(Some(std::fs::read_link(&self.absolute_path)?))
+            Ok(Some(isideload_vfs::fs::read_link(&self.absolute_path)?))
         } else {
             Ok(None)
         }
@@ -518,8 +518,8 @@ impl<'a> DirectoryBundleFile<'a> {
     /// Obtain metadata for this file.
     ///
     /// Does not follow symlinks.
-    pub fn metadata(&self) -> Result<std::fs::Metadata> {
-        Ok(self.absolute_path.symlink_metadata()?)
+    pub fn metadata(&self) -> Result<isideload_vfs::fs::Metadata> {
+        Ok(isideload_vfs::fs::symlink_metadata(&self.absolute_path)?)
     }
 
     /// Convert this instance to a [FileEntry].
@@ -538,7 +538,7 @@ impl<'a> DirectoryBundleFile<'a> {
 
 #[cfg(test)]
 mod test {
-    use {super::*, std::fs::create_dir_all};
+    use {super::*, isideload_vfs::fs::create_dir_all};
 
     fn temp_dir() -> Result<(tempfile::TempDir, PathBuf)> {
         let td = tempfile::Builder::new()
@@ -565,7 +565,7 @@ mod test {
 
         // Empty Info.plist fails.
         let plist_path = contents.join("Info.plist");
-        std::fs::write(&plist_path, [])?;
+        isideload_vfs::fs::write(&plist_path, [])?;
         assert!(DirectoryBundle::new_from_path(&root).is_err());
 
         // Empty plist dictionary works.
@@ -598,7 +598,7 @@ mod test {
 
         // Empty Info.plist file fails.
         let plist_path = resources.join("Info.plist");
-        std::fs::write(&plist_path, [])?;
+        isideload_vfs::fs::write(&plist_path, [])?;
         assert!(DirectoryBundle::new_from_path(&root).is_err());
 
         // Empty plist dictionary works.
@@ -674,12 +674,12 @@ mod test {
         let framework_info_plist = resources.join("Info.plist");
         empty.to_file_xml(framework_info_plist)?;
         let framework_resource_file_root = resources.join("root00.txt");
-        std::fs::write(framework_resource_file_root, [])?;
+        isideload_vfs::fs::write(framework_resource_file_root, [])?;
 
         let framework_child = resources.join("child_dir");
         create_dir_all(&framework_child)?;
         let framework_resource_file_child = framework_child.join("child00.txt");
-        std::fs::write(framework_resource_file_child, [])?;
+        isideload_vfs::fs::write(framework_resource_file_child, [])?;
 
         let a_resources = versions.join("A").join("Resources");
         create_dir_all(&a_resources)?;

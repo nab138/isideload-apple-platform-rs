@@ -1,3 +1,4 @@
+use isideload_vfs::fs::PermissionsExt;
 // Copyright 2022 Gregory Szorc.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
@@ -12,9 +13,6 @@ use std::{
     io::Write,
     path::{Path, PathBuf},
 };
-
-#[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
 
 /// File mode indicating execute bit for other.
 pub const S_IXOTH: u32 = 0o1;
@@ -56,18 +54,18 @@ pub const S_IFLNK: u32 = 0o120000;
 pub const S_IFSOCK: u32 = 0o140000;
 
 #[cfg(unix)]
-pub fn is_executable(metadata: &std::fs::Metadata) -> bool {
+pub fn is_executable(metadata: &isideload_vfs::fs::Metadata) -> bool {
     let permissions = metadata.permissions();
     permissions.mode() & 0o111 != 0
 }
 
 #[cfg(not(unix))]
-pub fn is_executable(_metadata: &std::fs::Metadata) -> bool {
+pub fn is_executable(_metadata: &isideload_vfs::fs::Metadata) -> bool {
     false
 }
 
 #[cfg(unix)]
-pub fn set_executable(file: &mut std::fs::File) -> Result<(), std::io::Error> {
+pub fn set_executable(file: &mut isideload_vfs::fs::File) -> Result<(), std::io::Error> {
     let mut permissions = file.metadata()?.permissions();
     permissions.set_mode(0o770);
     file.set_permissions(permissions)?;
@@ -75,7 +73,7 @@ pub fn set_executable(file: &mut std::fs::File) -> Result<(), std::io::Error> {
 }
 
 #[cfg(not(unix))]
-pub fn set_executable(_file: &mut std::fs::File) -> Result<(), std::io::Error> {
+pub fn set_executable(_file: &mut isideload_vfs::fs::File) -> Result<(), std::io::Error> {
     Ok(())
 }
 
@@ -95,7 +93,7 @@ pub fn create_symlink(
     let target = target.as_ref();
 
     // The function to call depends on the type of the target.
-    let metadata = std::fs::metadata(target)?;
+    let metadata = isideload_vfs::fs::metadata(target)?;
 
     if metadata.is_dir() {
         std::os::windows::fs::symlink_dir(target, path)
@@ -131,7 +129,7 @@ impl FileData {
     pub fn resolve_content(&self) -> Result<Vec<u8>, std::io::Error> {
         match self {
             Self::Path(p) => {
-                let data = std::fs::read(p)?;
+                let data = isideload_vfs::fs::read(p)?;
 
                 Ok(data)
             }
@@ -196,7 +194,7 @@ impl TryFrom<&Path> for FileEntry {
     type Error = std::io::Error;
 
     fn try_from(path: &Path) -> Result<Self, Self::Error> {
-        let metadata = std::fs::metadata(path)?;
+        let metadata = isideload_vfs::fs::metadata(path)?;
         let executable = is_executable(&metadata);
 
         Ok(Self {
@@ -306,12 +304,12 @@ impl FileEntry {
             .parent()
             .ok_or(FileManifestError::NoParentDirectory)?;
 
-        std::fs::create_dir_all(parent)?;
+        isideload_vfs::fs::create_dir_all(parent)?;
 
         if let Some(link) = &self.link {
             create_symlink(dest_path, link)?;
         } else {
-            let mut fh = std::fs::File::create(dest_path)?;
+            let mut fh = isideload_vfs::fs::File::create(dest_path)?;
             fh.write_all(&self.resolve_content()?)?;
             if self.executable {
                 set_executable(&mut fh)?;
@@ -698,7 +696,7 @@ impl FileManifest {
     ) -> Result<Vec<PathBuf>, FileManifestError> {
         let dest = dest.as_ref();
         if dest.exists() {
-            std::fs::remove_dir_all(dest)?;
+            isideload_vfs::fs::remove_dir_all(dest)?;
         }
 
         self.materialize_files(dest)
@@ -806,10 +804,10 @@ mod tests {
         m.materialize_files(td.path())?;
 
         let p = td.path().join("etc");
-        let metadata = std::fs::symlink_metadata(&p)?;
+        let metadata = isideload_vfs::fs::symlink_metadata(&p)?;
 
         assert_ne!(metadata.permissions().mode() & S_IFLNK, 0);
-        assert_eq!(std::fs::read_link(&p)?, PathBuf::from("/etc"));
+        assert_eq!(isideload_vfs::fs::read_link(&p)?, PathBuf::from("/etc"));
 
         Ok(())
     }

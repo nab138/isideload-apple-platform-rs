@@ -437,7 +437,7 @@ impl<'a> TryFrom<CodeDirectoryBlob<'a>> for CodeDirectory {
             .iter()
             .map(|(slot, digest)| (slot, digest.as_hex()))
             .collect::<Vec<_>>();
-        temp.sort_by(|(a, _), (b, _)| a.cmp(b));
+        temp.sort_by_key(|(a, _)| *a);
 
         let slot_digests = temp
             .into_iter()
@@ -553,7 +553,7 @@ impl<'a> TryFrom<EmbeddedSignature<'a>> for CodeSignature {
                 temp.push((req, format!("{reqs}")));
             }
 
-            temp.sort_by(|(a, _), (b, _)| a.cmp(b));
+            temp.sort_by_key(|(a, _)| *a);
 
             code_requirements = temp
                 .into_iter()
@@ -825,7 +825,7 @@ pub struct FileEntity {
 impl FileEntity {
     /// Construct an instance from a [Path].
     pub fn from_path(path: &Path, report_path: Option<&Path>) -> Result<Self, AppleCodesignError> {
-        let metadata = std::fs::symlink_metadata(path)?;
+        let metadata = isideload_vfs::fs::symlink_metadata(path)?;
 
         let report_path = if let Some(p) = report_path {
             p.to_path_buf()
@@ -834,7 +834,7 @@ impl FileEntity {
         };
 
         let (file_size, file_sha256, symlink_target) = if metadata.is_symlink() {
-            (None, None, Some(std::fs::read_link(path)?))
+            (None, None, Some(isideload_vfs::fs::read_link(path)?))
         } else {
             (
                 Some(metadata.len()),
@@ -879,7 +879,7 @@ impl SignatureReader {
                 ))
             }
             PathType::MachO => {
-                let data = std::fs::read(path)?;
+                let data = isideload_vfs::fs::read(path)?;
                 MachFile::parse(&data)?;
 
                 Ok(Self::MachO(path.to_path_buf(), data))
@@ -990,8 +990,7 @@ impl SignatureReader {
             .map_err(AppleCodesignError::DirectoryBundle)?
         {
             entities.extend(
-                Self::resolve_bundle_file_entity(bundle.root_dir().to_path_buf(), file)?
-                    .into_iter(),
+                Self::resolve_bundle_file_entity(bundle.root_dir().to_path_buf(), file)?,
             );
         }
 
@@ -1028,7 +1027,7 @@ impl SignatureReader {
             entities.push(default_entity);
         } else if parent_dir.ends_with("_CodeSignature") {
             if file_name == "CodeResources" {
-                let data = std::fs::read(file.absolute_path())?;
+                let data = isideload_vfs::fs::read(file.absolute_path())?;
 
                 default_entity.entity =
                     SignatureEntity::BundleCodeSignatureFile(CodeSignatureFile::ResourcesXml(
@@ -1051,7 +1050,7 @@ impl SignatureReader {
 
             entities.push(default_entity);
         } else {
-            let data = std::fs::read(file.absolute_path())?;
+            let data = isideload_vfs::fs::read(file.absolute_path())?;
 
             match Self::resolve_macho_entities_from_data(
                 file.absolute_path(),

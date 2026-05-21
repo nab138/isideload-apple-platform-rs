@@ -43,6 +43,7 @@ after signing and modifying the code directory would modify the code directory
 and invalidate prior signatures.
 */
 
+use isideload_vfs::fs::File;
 use {
     crate::{
         AppleCodesignError, SettingsScope, SigningSettings,
@@ -55,7 +56,6 @@ use {
     scroll::{Pread, Pwrite, SizeWith},
     std::{
         borrow::Cow,
-        fs::File,
         io::{Read, Seek, SeekFrom, Write},
         path::Path,
     },

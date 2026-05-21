@@ -69,13 +69,13 @@ impl<'key> UnifiedSigner<'key> {
 
         #[cfg(unix)]
         {
-            use std::os::unix::fs::PermissionsExt;
-            let mut perms = std::fs::metadata(input_path)?.permissions();
+            use isideload_vfs::fs::PermissionsExt;
+            let mut perms = isideload_vfs::fs::metadata(input_path)?.permissions();
             perms.set_mode(0o755);
-            std::fs::set_permissions(input_path, perms)?;
+            isideload_vfs::fs::set_permissions(input_path, perms)?;
         }
 
-        let macho_data = std::fs::read(input_path)?;
+        let macho_data = isideload_vfs::fs::read(input_path)?;
 
         let mut settings = self.settings.clone();
 
@@ -140,14 +140,14 @@ impl<'key> UnifiedSigner<'key> {
                 output_path.display()
             );
             if let Some(parent) = output_path.parent() {
-                std::fs::create_dir_all(parent)?;
+                isideload_vfs::fs::create_dir_all(parent)?;
             }
 
-            std::fs::copy(input_path, output_path)?;
+            isideload_vfs::fs::copy(input_path, output_path)?;
         }
 
         let signer = DmgSigner::default();
-        let mut fh = std::fs::File::options()
+        let mut fh = isideload_vfs::fs::File::options()
             .read(true)
             .write(true)
             .open(output_path)?;
@@ -216,7 +216,7 @@ impl<'key> UnifiedSigner<'key> {
 
         if output_path.exists() {
             warn!("removing existing {}", output_path.display());
-            std::fs::remove_file(output_path)?;
+            isideload_vfs::fs::remove_file(output_path)?;
         }
 
         warn!(
@@ -224,7 +224,7 @@ impl<'key> UnifiedSigner<'key> {
             output_path_temp.display(),
             output_path.display()
         );
-        std::fs::rename(&output_path_temp, output_path)?;
+        isideload_vfs::fs::rename(&output_path_temp, output_path)?;
 
         Ok(())
     }

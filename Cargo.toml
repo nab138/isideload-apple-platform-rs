@@ -3,6 +3,7 @@ members = [
     'apple-bundles',
     'apple-codesign',
     'apple-flat-package',
+    "isideload-vfs",
     'apple-xar',
     'cpio-archive',
     'simple-file-manifest-rs'

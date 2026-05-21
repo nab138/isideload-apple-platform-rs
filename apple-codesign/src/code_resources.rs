@@ -1295,7 +1295,7 @@ impl CodeResourcesBuilder {
             let nested_exe = dest_dir.join(rel_path).join(nested_exe.relative_path());
 
             info!("reading Mach-O signature from {}", nested_exe.display());
-            let macho_data = std::fs::read(&nested_exe)?;
+            let macho_data = isideload_vfs::fs::read(&nested_exe)?;
             let macho_info = SignedMachOInfo::parse_data(&macho_data)?;
 
             self.resources
@@ -1332,7 +1332,7 @@ impl CodeResourcesBuilder {
             warn!("(if you see an error, sign that Mach-O explicitly or remove it from the exclusion settings)");
 
             let dest_path = context.install_file(full_path, rel_path)?;
-            let data = std::fs::read(dest_path)?;
+            let data = isideload_vfs::fs::read(dest_path)?;
 
             SignedMachOInfo::parse_data(&data)?
         } else {
@@ -1428,7 +1428,7 @@ impl CodeResourcesBuilder {
         omit: bool,
         context: &mut BundleSigningContext,
     ) -> Result<(), AppleCodesignError> {
-        let link_target = std::fs::read_link(full_path)?
+        let link_target = isideload_vfs::fs::read_link(full_path)?
             .to_string_lossy()
             .replace('\\', "/");
 

@@ -274,18 +274,18 @@ pub fn write_macho_file(
     macho_data: &[u8],
 ) -> Result<(), AppleCodesignError> {
     // Read permissions first in case we overwrite the original file.
-    let permissions = std::fs::metadata(input_path)?.permissions();
+    let permissions = isideload_vfs::fs::metadata(input_path)?.permissions();
 
     if let Some(parent) = output_path.parent() {
-        std::fs::create_dir_all(parent)?;
+        isideload_vfs::fs::create_dir_all(parent)?;
     }
 
     {
-        let mut fh = std::fs::File::create(output_path)?;
+        let mut fh = isideload_vfs::fs::File::create(output_path)?;
         fh.write_all(macho_data)?;
     }
 
-    std::fs::set_permissions(output_path, permissions)?;
+    isideload_vfs::fs::set_permissions(output_path, permissions)?;
 
     Ok(())
 }
@@ -383,7 +383,7 @@ impl<'data> MachOSigner<'data> {
             create_universal_macho(writer, binaries.iter().map(|x| x.as_slice()))?;
         } else {
             for binary in binaries {
-                writer.write(&binary)?;
+                let _ = writer.write(&binary)?;
             }
         }
 

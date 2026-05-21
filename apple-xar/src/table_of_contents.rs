@@ -64,7 +64,7 @@ impl TableOfContents {
             .flat_map(|x| x.into_iter())
             .collect::<Vec<_>>();
 
-        files.sort_by(|a, b| a.1.id.cmp(&b.1.id));
+        files.sort_by_key(|a| a.1.id);
 
         Ok(files)
     }
@@ -76,7 +76,7 @@ impl TableOfContents {
         emitter
             .into_inner()
             .into_inner()
-            .map_err(|e| Error::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))
+            .map_err(|e| Error::Io(std::io::Error::other(e)))
     }
 
     pub fn write_xml<W: Write>(&self, writer: &mut EventWriter<W>) -> XarResult<()> {

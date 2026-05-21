@@ -10,5 +10,8 @@ keywords = ["package"]
 homepage = "https://github.com/nab138/isideload-apple-platform-rs"
 repository = "https://github.com/nab138/isideload-apple-platform-rs.git"
 
+[dependencies]
+isideload-vfs = { path = "../isideload-vfs", version = "0.0.1" }
+
 [dev-dependencies]
 tempfile = "3.2"

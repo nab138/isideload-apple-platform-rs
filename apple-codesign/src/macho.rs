@@ -189,7 +189,7 @@ impl<'a> MachOBinary<'a> {
     pub fn segments_by_file_offset(&self) -> Vec<&Segment<'a>> {
         let mut segments = self.macho.segments.iter().collect::<Vec<_>>();
 
-        segments.sort_by(|a, b| a.fileoff.cmp(&b.fileoff));
+        segments.sort_by_key(|a| a.fileoff);
 
         segments
     }
@@ -695,12 +695,12 @@ mod tests {
     fn find_likely_macho_files(path: &Path) -> Vec<PathBuf> {
         let mut res = Vec::new();
 
-        let dir = std::fs::read_dir(path).unwrap();
+        let dir = isideload_vfs::fs::read_dir(path).unwrap();
 
         for entry in dir {
             let entry = entry.unwrap();
 
-            if let Ok(mut fh) = std::fs::File::open(entry.path()) {
+            if let Ok(mut fh) = isideload_vfs::fs::File::open(entry.path()) {
                 let mut magic = [0; 4];
 
                 if let Ok(size) = fh.read(&mut magic) {
@@ -804,7 +804,7 @@ mod tests {
 
     fn validate_macho_in_dir(dir: &Path) {
         for path in find_likely_macho_files(dir).into_iter() {
-            if let Ok(file_data) = std::fs::read(&path) {
+            if let Ok(file_data) = isideload_vfs::fs::read(&path) {
                 if let Ok(mach) = MachFile::parse(&file_data) {
                     for macho in mach.into_iter() {
                         validate_macho(&path, &macho);
@@ -819,7 +819,7 @@ mod tests {
         // This test scans common directories containing Mach-O files on macOS and
         // verifies we can parse CMS blobs within.
 
-        if let Ok(dir) = std::fs::read_dir("/Applications") {
+        if let Ok(dir) = isideload_vfs::fs::read_dir("/Applications") {
             for entry in dir {
                 let entry = entry.unwrap();
 

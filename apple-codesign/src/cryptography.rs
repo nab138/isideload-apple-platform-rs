@@ -677,7 +677,7 @@ impl MultiDigest {
 
     /// Compute the multi digest of a filesystem path.
     pub fn from_path(path: impl AsRef<Path>) -> Result<Self, AppleCodesignError> {
-        let fh = std::fs::File::open(path.as_ref())?;
+        let fh = isideload_vfs::fs::File::open(path.as_ref())?;
         Self::from_reader(fh)
     }
 }

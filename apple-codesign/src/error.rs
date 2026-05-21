@@ -377,9 +377,6 @@ pub enum AppleCodesignError {
     #[error("plist: {0}")]
     Plist(#[from] plist::Error),
 
-    #[error("config error: {0:?}")]
-    Figment(#[from] figment::Error),
-
     #[error("environment constraints: {0}")]
     EnvironmentConstraint(String),
 }

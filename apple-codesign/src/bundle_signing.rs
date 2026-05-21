@@ -415,18 +415,18 @@ impl<'a, 'key> BundleSigningContext<'a, 'key> {
             // the case of symlinks this is required due to how symlink creation
             // works.
             if dest_path.symlink_metadata().is_ok() {
-                std::fs::remove_file(&dest_path)?;
+                isideload_vfs::fs::remove_file(&dest_path)?;
             }
 
             if let Some(parent) = dest_path.parent() {
-                std::fs::create_dir_all(parent)?;
+                isideload_vfs::fs::create_dir_all(parent)?;
             }
 
             let metadata = source_path.symlink_metadata()?;
             let mtime = filetime::FileTime::from_last_modification_time(&metadata);
 
             if metadata.file_type().is_symlink() {
-                let target = std::fs::read_link(source_path)?;
+                let target = isideload_vfs::fs::read_link(source_path)?;
                 info!(
                     "replicating symlink {} -> {}",
                     dest_path.display(),
@@ -445,7 +445,7 @@ impl<'a, 'key> BundleSigningContext<'a, 'key> {
                     dest_path.display()
                 );
                 // TODO consider stripping XATTR_RESOURCEFORK_NAME and XATTR_FINDERINFO_NAME.
-                std::fs::copy(source_path, &dest_path)?;
+                isideload_vfs::fs::copy(source_path, &dest_path)?;
                 filetime::set_file_mtime(&dest_path, mtime)?;
             }
         }
@@ -471,13 +471,13 @@ impl<'a, 'key> BundleSigningContext<'a, 'key> {
 
         #[cfg(unix)]
         {
-            use std::os::unix::fs::PermissionsExt;
-            let mut perms = std::fs::metadata(source_path)?.permissions();
+            use isideload_vfs::fs::PermissionsExt;
+            let mut perms = isideload_vfs::fs::metadata(source_path)?.permissions();
             perms.set_mode(0o755);
-            std::fs::set_permissions(source_path, perms)?;
+            isideload_vfs::fs::set_permissions(source_path, perms)?;
         }
 
-        let macho_data = std::fs::read(source_path)?;
+        let macho_data = isideload_vfs::fs::read(source_path)?;
         let signer = MachOSigner::new(&macho_data)?;
 
         let mut settings = self
@@ -628,7 +628,7 @@ impl SingleBundleSigner {
             .find(|f| matches!(f.is_main_executable(), Ok(true)));
 
         if let Some(exe) = &main_exe {
-            let macho_data = std::fs::read(exe.absolute_path())?;
+            let macho_data = isideload_vfs::fs::read(exe.absolute_path())?;
             let mach = MachFile::parse(&macho_data)?;
 
             for macho in mach.iter_macho() {
@@ -705,7 +705,7 @@ impl SingleBundleSigner {
             &mut context,
         )?;
 
-        let info_plist_data = std::fs::read(self.bundle.info_plist_path())?;
+        let info_plist_data = isideload_vfs::fs::read(self.bundle.info_plist_path())?;
 
         // The resources are now sealed. Write out that XML file.
         let code_resources_path = dest_dir.join("_CodeSignature").join("CodeResources");
@@ -713,12 +713,12 @@ impl SingleBundleSigner {
             "writing sealed resources to {}",
             code_resources_path.display()
         );
-        std::fs::create_dir_all(code_resources_path.parent().unwrap())?;
+        isideload_vfs::fs::create_dir_all(code_resources_path.parent().unwrap())?;
         let mut resources_data = Vec::<u8>::new();
         resources_builder.write_code_resources(&mut resources_data)?;
 
         {
-            let mut fh = std::fs::File::create(&code_resources_path)?;
+            let mut fh = isideload_vfs::fs::File::create(&code_resources_path)?;
             fh.write_all(&resources_data)?;
         }
 
@@ -728,13 +728,13 @@ impl SingleBundleSigner {
 
             #[cfg(unix)]
             {
-                use std::os::unix::fs::PermissionsExt;
-                let mut perms = std::fs::metadata(exe.absolute_path())?.permissions();
+                use isideload_vfs::fs::PermissionsExt;
+                let mut perms = isideload_vfs::fs::metadata(exe.absolute_path())?.permissions();
                 perms.set_mode(0o755);
-                std::fs::set_permissions(exe.absolute_path(), perms)?;
+                isideload_vfs::fs::set_permissions(exe.absolute_path(), perms)?;
             }
 
-            let macho_data = std::fs::read(exe.absolute_path())?;
+            let macho_data = isideload_vfs::fs::read(exe.absolute_path())?;
             let signer = MachOSigner::new(&macho_data)?;
 
             let mut settings = settings
