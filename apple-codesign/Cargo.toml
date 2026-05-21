@@ -115,4 +115,4 @@ zip = { version = "8", default-features = false }
 [features]
 default = []
 smartcard = ["yubikey"]
-wasm = ["ring/wasm32_unknown_unknown_js"]
+wasm = ["ring/wasm32_unknown_unknown_js", "uuid/rng-getrandom"]
