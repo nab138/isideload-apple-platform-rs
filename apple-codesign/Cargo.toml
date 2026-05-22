@@ -75,17 +75,17 @@ isideload-vfs = { version = "0.0.1", path = "../isideload-vfs" }
 
 [dependencies.apple-bundles]
 path = "../apple-bundles"
-version = "0.21.0"
+version = "0.21.1"
 package = "isideload-apple-bundles"
 
 [dependencies.apple-flat-package]
 path = "../apple-flat-package"
-version = "0.20.3"
+version = "0.20.4"
 package = "isideload-apple-flat-package"
 
 [dependencies.apple-xar]
 path = "../apple-xar"
-version = "0.20.3"
+version = "0.20.4"
 package = "isideload-apple-xar"
 
 

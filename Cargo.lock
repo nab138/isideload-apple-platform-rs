@@ -1047,7 +1047,7 @@ checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
 
 [[package]]
 name = "isideload-apple-bundles"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "anyhow",
  "isideload-simple-file-manifest",
@@ -1139,7 +1139,7 @@ dependencies = [
 
 [[package]]
 name = "isideload-apple-flat-package"
-version = "0.20.3"
+version = "0.20.4"
 dependencies = [
  "flate2",
  "isideload-apple-xar",
@@ -1152,7 +1152,7 @@ dependencies = [
 
 [[package]]
 name = "isideload-apple-xar"
-version = "0.20.3"
+version = "0.20.4"
 dependencies = [
  "base64",
  "bcder",
@@ -1181,7 +1181,7 @@ dependencies = [
 
 [[package]]
 name = "isideload-cpio-archive"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "chrono",
  "is_executable",

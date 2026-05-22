@@ -1,6 +1,6 @@
 [package]
 name = "isideload-apple-flat-package"
-version = "0.20.3"
+version = "0.20.4"
 authors = ["Nicholas Sharp <nab@nabdev.me>"]
 edition = "2021"
 rust-version = "1.81"
@@ -20,10 +20,10 @@ thiserror = "2.0.3"
 
 [dependencies.apple-xar]
 path = "../apple-xar"
-version = "0.20.2"
+version = "0.20.4"
 package = "isideload-apple-xar"
 
 [dependencies.cpio-archive]
 path = "../cpio-archive"
-version = "0.10.0"
+version = "0.10.1"
 package = "isideload-cpio-archive"

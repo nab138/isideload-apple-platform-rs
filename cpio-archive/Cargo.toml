@@ -1,6 +1,6 @@
 [package]
 name = "isideload-cpio-archive"
-version = "0.10.0"
+version = "0.10.1"
 authors = ["Nicholas Sharp <nab@nabdev.me>"]
 edition = "2021"
 license = "MPL-2.0"
@@ -13,6 +13,6 @@ readme = "README.md"
 [dependencies]
 chrono = "0.4.38"
 is_executable = "1.0.4"
-simple-file-manifest = { version = "0.11.0", path = "../simple-file-manifest-rs", package = "isideload-simple-file-manifest" }
+simple-file-manifest = { version = "0.11.1", path = "../simple-file-manifest-rs", package = "isideload-simple-file-manifest" }
 thiserror = "2.0.3"
 isideload-vfs = { version = "0.0.1", path = "../isideload-vfs" }
