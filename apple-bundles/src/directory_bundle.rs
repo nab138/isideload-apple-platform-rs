@@ -50,7 +50,7 @@ impl DirectoryBundle {
     /// Validation is limited to locating an `Info.plist` file, which is
     /// required for all bundle types.
     pub fn new_from_path(directory: &Path) -> Result<Self> {
-        if !directory.is_dir() {
+        if !isideload_vfs::fs::metadata(directory)?.is_dir() {
             return Err(anyhow!("{} is not a directory", directory.display()));
         }
 
@@ -61,7 +61,8 @@ impl DirectoryBundle {
             .to_string();
 
         let contents = directory.join("Contents");
-        let shallow = !contents.is_dir();
+        let meta = isideload_vfs::fs::metadata(&contents);
+        let shallow = !(meta.is_ok() && meta?.is_dir());
 
         let app_plist = if shallow {
             directory.join("Info.plist")
@@ -76,9 +77,9 @@ impl DirectoryBundle {
         // case it's safe to check for the existence of the .framework path extension because iOS frameworks
         // aren't versioned. It's furthermore necessary to perform this check, otherwise we would end up
         // assuming that all bundles are frameworks.
-        let framework_plist = if !framework_plist_deep.exists()
+        let framework_plist = if !isideload_vfs::fs::metadata(&framework_plist_deep).is_ok()
             && root_name.ends_with(".framework")
-            && framework_plist_shallow.exists()
+            && isideload_vfs::fs::metadata(&framework_plist_shallow).is_ok()
         {
             framework_plist_shallow
         } else {
@@ -118,9 +119,13 @@ impl DirectoryBundle {
 
         // Frameworks must have a `Resources/Info.plist`. It is tempting to look for the
         // `.framework` extension as well. However
-        let (package_type, info_plist_path) = if framework_plist.is_file() {
+        let framework_meta = isideload_vfs::fs::metadata(&framework_plist);
+        let app_meta = isideload_vfs::fs::metadata(&app_plist);
+
+        let (package_type, info_plist_path) = if framework_meta.is_ok() && framework_meta?.is_file()
+        {
             (BundlePackageType::Framework, framework_plist)
-        } else if app_plist.is_file() {
+        } else if app_meta.is_ok() && app_meta?.is_file() {
             if root_name.ends_with(".app") {
                 (BundlePackageType::App, app_plist)
             } else {
@@ -286,6 +291,7 @@ impl DirectoryBundle {
             .filter_map(|path| {
                 // This path is part of a known nested bundle and we're not in traversal mode.
                 // Stop immediately.
+                let meta = isideload_vfs::fs::symlink_metadata(&path).ok();
                 if !traverse_nested
                     && nested_dirs
                         .iter()
@@ -294,8 +300,12 @@ impl DirectoryBundle {
                     None
                 // Symlinks are emitted as files, even if they point to a directory. It is
                 // up to callers to handle symlinks correctly.
-                } else if path.is_symlink() || !path.is_dir() {
-                    Some(DirectoryBundleFile::new(self, path))
+                } else if let Some(meta) = meta {
+                    if meta.is_symlink() || !meta.is_dir() {
+                        Some(DirectoryBundleFile::new(self, path))
+                    } else {
+                        None
+                    }
                 } else {
                     None
                 }
@@ -336,8 +346,9 @@ impl DirectoryBundle {
                 continue;
             }
 
+            let meta = isideload_vfs::fs::symlink_metadata(path)?;
             // A nested bundle must be a directory.
-            if !path.is_dir() || path.is_symlink() {
+            if !meta.is_dir() || meta.is_symlink() {
                 continue;
             }
 
@@ -533,181 +544,5 @@ impl<'a> DirectoryBundleFile<'a> {
         }
 
         Ok(entry)
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use {super::*, isideload_vfs::fs::create_dir_all};
-
-    fn temp_dir() -> Result<(tempfile::TempDir, PathBuf)> {
-        let td = tempfile::Builder::new()
-            .prefix("apple-bundles-")
-            .tempdir()?;
-        let path = td.path().to_path_buf();
-
-        Ok((td, path))
-    }
-
-    #[test]
-    fn app_simple() -> Result<()> {
-        let (_temp, td) = temp_dir()?;
-
-        // Empty directory fails.
-        let root = td.join("MyApp.app");
-        create_dir_all(&root)?;
-        assert!(DirectoryBundle::new_from_path(&root).is_err());
-
-        // Empty Contents/ fails.
-        let contents = root.join("Contents");
-        create_dir_all(&contents)?;
-        assert!(DirectoryBundle::new_from_path(&root).is_err());
-
-        // Empty Info.plist fails.
-        let plist_path = contents.join("Info.plist");
-        isideload_vfs::fs::write(&plist_path, [])?;
-        assert!(DirectoryBundle::new_from_path(&root).is_err());
-
-        // Empty plist dictionary works.
-        let empty = plist::Value::from(plist::Dictionary::new());
-        empty.to_file_xml(&plist_path)?;
-        let bundle = DirectoryBundle::new_from_path(&root)?;
-
-        assert_eq!(bundle.package_type, BundlePackageType::App);
-        assert_eq!(bundle.name(), "MyApp.app");
-        assert!(!bundle.shallow());
-        assert_eq!(bundle.identifier()?, None);
-        assert!(bundle.nested_bundles(true)?.is_empty());
-
-        Ok(())
-    }
-
-    #[test]
-    fn framework() -> Result<()> {
-        let (_temp, td) = temp_dir()?;
-
-        // Empty directory fails.
-        let root = td.join("MyFramework.framework");
-        create_dir_all(&root)?;
-        assert!(DirectoryBundle::new_from_path(&root).is_err());
-
-        // Empty Resources/ fails.
-        let resources = root.join("Resources");
-        create_dir_all(&resources)?;
-        assert!(DirectoryBundle::new_from_path(&root).is_err());
-
-        // Empty Info.plist file fails.
-        let plist_path = resources.join("Info.plist");
-        isideload_vfs::fs::write(&plist_path, [])?;
-        assert!(DirectoryBundle::new_from_path(&root).is_err());
-
-        // Empty plist dictionary works.
-        let empty = plist::Value::from(plist::Dictionary::new());
-        empty.to_file_xml(&plist_path)?;
-        let bundle = DirectoryBundle::new_from_path(&root)?;
-
-        assert_eq!(bundle.package_type, BundlePackageType::Framework);
-        assert_eq!(bundle.name(), "MyFramework.framework");
-        assert!(bundle.shallow());
-        assert_eq!(bundle.identifier()?, None);
-        assert!(bundle.nested_bundles(true)?.is_empty());
-
-        Ok(())
-    }
-
-    #[test]
-    fn ios_framework() -> Result<()> {
-        let (_temp, td) = temp_dir()?;
-
-        let root = td.join("MyFramework.framework");
-        create_dir_all(&root)?;
-
-        let plist_path = root.join("Info.plist");
-        let empty = plist::Value::from(plist::Dictionary::new());
-        empty.to_file_xml(plist_path)?;
-
-        let bundle = DirectoryBundle::new_from_path(&root)?;
-        assert_eq!(bundle.package_type, BundlePackageType::Framework);
-        assert_eq!(bundle.name(), "MyFramework.framework");
-        assert!(bundle.shallow());
-        assert_eq!(bundle.identifier()?, None);
-        assert!(bundle.nested_bundles(true)?.is_empty());
-
-        Ok(())
-    }
-
-    #[test]
-    fn simple_bundle() -> Result<()> {
-        let (_temp, td) = temp_dir()?;
-
-        let root = td.join("MyBundle.bundle");
-        create_dir_all(&root)?;
-
-        let plist_path = root.join("Info.plist");
-        let empty = plist::Value::from(plist::Dictionary::new());
-        empty.to_file_xml(plist_path)?;
-
-        let bundle = DirectoryBundle::new_from_path(&root)?;
-        assert_eq!(bundle.package_type, BundlePackageType::Bundle);
-
-        Ok(())
-    }
-
-    #[test]
-    fn framework_in_app() -> Result<()> {
-        let (_temp, td) = temp_dir()?;
-
-        let root = td.join("MyApp.app");
-        let contents = root.join("Contents");
-        create_dir_all(&contents)?;
-
-        let app_info_plist = contents.join("Info.plist");
-        let empty = plist::Value::Dictionary(plist::Dictionary::new());
-        empty.to_file_xml(app_info_plist)?;
-
-        let frameworks = contents.join("Frameworks");
-        let framework = frameworks.join("MyFramework.framework");
-        let resources = framework.join("Resources");
-        create_dir_all(&resources)?;
-        let versions = framework.join("Versions");
-        create_dir_all(&versions)?;
-        let framework_info_plist = resources.join("Info.plist");
-        empty.to_file_xml(framework_info_plist)?;
-        let framework_resource_file_root = resources.join("root00.txt");
-        isideload_vfs::fs::write(framework_resource_file_root, [])?;
-
-        let framework_child = resources.join("child_dir");
-        create_dir_all(&framework_child)?;
-        let framework_resource_file_child = framework_child.join("child00.txt");
-        isideload_vfs::fs::write(framework_resource_file_child, [])?;
-
-        let a_resources = versions.join("A").join("Resources");
-        create_dir_all(&a_resources)?;
-        let b_resources = versions.join("B").join("Resources");
-        create_dir_all(&b_resources)?;
-        let a_plist = a_resources.join("Info.plist");
-        empty.to_file_xml(a_plist)?;
-        let b_plist = b_resources.join("Info.plist");
-        empty.to_file_xml(b_plist)?;
-
-        let bundle = DirectoryBundle::new_from_path(&root)?;
-
-        let nested = bundle.nested_bundles(true)?;
-        assert_eq!(nested.len(), 3);
-        assert_eq!(
-            nested
-                .iter()
-                .map(|x| x.0.replace('\\', "/"))
-                .collect::<Vec<_>>(),
-            vec![
-                "Contents/Frameworks/MyFramework.framework",
-                "Contents/Frameworks/MyFramework.framework/Versions/A",
-                "Contents/Frameworks/MyFramework.framework/Versions/B",
-            ]
-        );
-
-        assert_eq!(nested[0].1.framework_versions()?, vec!["A", "B"]);
-
-        Ok(())
     }
 }

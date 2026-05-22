@@ -3,6 +3,7 @@ use std::io;
 
 pub mod fs;
 pub mod native;
+pub mod memory;
 pub mod traits;
 
 pub use traits::*;

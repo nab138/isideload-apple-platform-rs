@@ -1,4 +1,6 @@
-# apple-platform-rs
+# isideload-apple-platform-rs
+
+This is a collection of rust crates for apple-codesign as used in isideload. Several other dependencies are also here, as they were patched for wasm support.
 
 This repository contains a collection of Rust crates to support Apple
 platforms.

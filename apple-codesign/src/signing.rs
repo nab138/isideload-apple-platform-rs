@@ -14,8 +14,9 @@ use {
         signing_settings::{SettingsScope, SigningSettings},
     },
     apple_xar::{reader::XarReader, signing::XarSigner},
+    isideload_vfs::fs::File,
     log::{info, warn},
-    std::{fs::File, path::Path},
+    std::path::Path,
 };
 
 /// An entity for performing signing that is able to handle all supported target types.

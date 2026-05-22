@@ -53,18 +53,19 @@ pub const S_IFLNK: u32 = 0o120000;
 /// File mode indicating a socket.
 pub const S_IFSOCK: u32 = 0o140000;
 
-#[cfg(unix)]
+// unix or wasm32
+#[cfg(any(unix, target_arch = "wasm32"))]
 pub fn is_executable(metadata: &isideload_vfs::fs::Metadata) -> bool {
     let permissions = metadata.permissions();
     permissions.mode() & 0o111 != 0
 }
 
-#[cfg(not(unix))]
+#[cfg(not(any(unix, target_arch = "wasm32")))]
 pub fn is_executable(_metadata: &isideload_vfs::fs::Metadata) -> bool {
     false
 }
 
-#[cfg(unix)]
+#[cfg(any(unix, target_arch = "wasm32"))]
 pub fn set_executable(file: &mut isideload_vfs::fs::File) -> Result<(), std::io::Error> {
     let mut permissions = file.metadata()?.permissions();
     permissions.set_mode(0o770);
@@ -72,17 +73,17 @@ pub fn set_executable(file: &mut isideload_vfs::fs::File) -> Result<(), std::io:
     Ok(())
 }
 
-#[cfg(not(unix))]
+#[cfg(not(any(unix, target_arch = "wasm32")))]
 pub fn set_executable(_file: &mut isideload_vfs::fs::File) -> Result<(), std::io::Error> {
     Ok(())
 }
 
-#[cfg(unix)]
+#[cfg(any(unix, target_arch = "wasm32"))]
 pub fn create_symlink(
     path: impl AsRef<Path>,
     target: impl AsRef<Path>,
 ) -> Result<(), std::io::Error> {
-    std::os::unix::fs::symlink(target, path)
+    isideload_vfs::fs::symlink(target, path)
 }
 
 #[cfg(windows)]
@@ -96,13 +97,13 @@ pub fn create_symlink(
     let metadata = isideload_vfs::fs::metadata(target)?;
 
     if metadata.is_dir() {
-        std::os::windows::fs::symlink_dir(target, path)
+        isideload_vfs::fs::symlink_dir(target, path)
     } else {
-        std::os::windows::fs::symlink_file(target, path)
+        isideload_vfs::fs::symlink_file(target, path)
     }
 }
 
-#[cfg(not(any(unix, windows)))]
+#[cfg(not(any(unix, target_arch = "wasm32", windows)))]
 pub fn create_symlink(
     _path: impl AsRef<Path>,
     _target: impl AsRef<Path>,
@@ -695,7 +696,7 @@ impl FileManifest {
         dest: impl AsRef<Path>,
     ) -> Result<Vec<PathBuf>, FileManifestError> {
         let dest = dest.as_ref();
-        if dest.exists() {
+        if isideload_vfs::fs::metadata(dest).is_ok() {
             isideload_vfs::fs::remove_dir_all(dest)?;
         }
 

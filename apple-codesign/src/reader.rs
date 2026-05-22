@@ -24,10 +24,10 @@ use {
     },
     cryptographic_message_syntax::{SignedData, SignerInfo},
     goblin::mach::{fat::FAT_MAGIC, parse_magic_and_ctx},
+    isideload_vfs::fs::File,
     serde::Serialize,
     std::{
         fmt::Debug,
-        fs::File,
         io::{BufWriter, Cursor, Read, Seek},
         ops::Deref,
         path::{Path, PathBuf},
@@ -113,8 +113,9 @@ impl PathType {
     /// Attempt to classify the type of signable entity based on a filesystem path.
     pub fn from_path(path: impl AsRef<Path>) -> Result<Self, AppleCodesignError> {
         let path = path.as_ref();
+        let meta = isideload_vfs::fs::metadata(path)?;
 
-        if path.is_file() {
+        if meta.is_file() {
             if path_is_dmg(path)? {
                 Ok(Self::Dmg)
             } else if path_is_xar(path)? {
@@ -126,7 +127,7 @@ impl PathType {
             } else {
                 Ok(Self::Other)
             }
-        } else if path.is_dir() {
+        } else if meta.is_dir() {
             Ok(Self::Bundle)
         } else {
             Ok(Self::Other)
@@ -989,9 +990,10 @@ impl SignatureReader {
             .files(true)
             .map_err(AppleCodesignError::DirectoryBundle)?
         {
-            entities.extend(
-                Self::resolve_bundle_file_entity(bundle.root_dir().to_path_buf(), file)?,
-            );
+            entities.extend(Self::resolve_bundle_file_entity(
+                bundle.root_dir().to_path_buf(),
+                file,
+            )?);
         }
 
         Ok(entities)

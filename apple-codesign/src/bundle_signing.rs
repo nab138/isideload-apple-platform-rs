@@ -8,12 +8,12 @@ use {
     crate::{
         code_directory::CodeDirectoryBlob,
         code_requirement::{CodeRequirementExpression, RequirementType},
-        code_resources::{normalized_resources_path, CodeResourcesBuilder, CodeResourcesRule},
+        code_resources::{CodeResourcesBuilder, CodeResourcesRule, normalized_resources_path},
         cryptography::DigestType,
         embedded_signature::{Blob, BlobData},
         error::AppleCodesignError,
         macho::MachFile,
-        macho_signing::{write_macho_file, MachOSigner},
+        macho_signing::{MachOSigner, write_macho_file},
         signing::path_identifier,
         signing_settings::{SettingsScope, SigningSettings},
     },
@@ -181,7 +181,10 @@ impl BundleSigner {
 
         if !bundles.is_empty() {
             if settings.shallow() {
-                warn!("{} nested bundles will be copied instead of signed because shallow signing enabled:", bundles.len());
+                warn!(
+                    "{} nested bundles will be copied instead of signed because shallow signing enabled:",
+                    bundles.len()
+                );
             } else {
                 warn!(
                     "signing {} nested bundles in the following order:",
@@ -574,7 +577,9 @@ impl SingleBundleSigner {
         // Of course, if there is no `Versions/` directory, the top-level directory could be
         // a valid framework warranting signing.
         if self.bundle.package_type() == BundlePackageType::Framework {
-            if self.bundle.root_dir().join("Versions").is_dir() {
+            let meta = isideload_vfs::fs::metadata(&self.bundle.root_dir().join("Versions"));
+
+            if meta.is_ok() && meta?.is_dir() {
                 info!("found a versioned framework; each version will be signed as its own bundle");
 
                 // But we still need to preserve files (hopefully just symlinks) outside the
@@ -660,12 +665,12 @@ impl SingleBundleSigner {
         // We assume that we can use the resources rules when there is a `Resources` directory
         // (this seems obvious!) or when the bundle isn't shallow, as a non-shallow bundle should
         // be an app bundle and app bundles can always have resources (we think).
-        let mut resources_builder =
-            if self.bundle.resolve_path("Resources").is_dir() || !self.bundle.shallow() {
-                CodeResourcesBuilder::default_resources_rules()?
-            } else {
-                CodeResourcesBuilder::default_no_resources_rules()?
-            };
+        let meta = isideload_vfs::fs::metadata(&self.bundle.resolve_path("Resources"));
+        let mut resources_builder = if meta.is_ok() && meta?.is_dir() || !self.bundle.shallow() {
+            CodeResourcesBuilder::default_resources_rules()?
+        } else {
+            CodeResourcesBuilder::default_no_resources_rules()?
+        };
 
         // Ensure emitted digests match what we're configured to emit.
         resources_builder.set_digests(resources_digests.into_iter());
@@ -746,10 +751,15 @@ impl SingleBundleSigner {
                 .identifier()
                 .map_err(AppleCodesignError::DirectoryBundle)?
             {
-                info!("setting main executable binary identifier to {} (derived from CFBundleIdentifier in Info.plist)", ident);
+                info!(
+                    "setting main executable binary identifier to {} (derived from CFBundleIdentifier in Info.plist)",
+                    ident
+                );
                 settings.set_binary_identifier(SettingsScope::Main, ident);
             } else {
-                info!("unable to determine binary identifier from bundle's Info.plist (CFBundleIdentifier not set?)");
+                info!(
+                    "unable to determine binary identifier from bundle's Info.plist (CFBundleIdentifier not set?)"
+                );
             }
 
             settings.set_code_resources_data(SettingsScope::Main, resources_data);

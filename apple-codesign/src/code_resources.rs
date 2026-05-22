@@ -923,7 +923,6 @@ pub fn normalized_resources_path(path: impl AsRef<Path>) -> String {
 
     // The Contents/ prefix is also removed for pattern matching and references in the
     // resources file.
-    
 
     path.strip_prefix("Contents/").unwrap_or(&path).to_string()
 }
@@ -1205,8 +1204,12 @@ impl CodeResourcesBuilder {
                                 "encountered a non Mach-O file with a nested rule: {}",
                                 rel_path.display()
                             );
-                            error!("we do not know how to handle this scenario; either your bundle layout is invalid or you found a bug in this program");
-                            error!("if the bundle signs and verifies with Apple's tooling, consider reporting this issue");
+                            error!(
+                                "we do not know how to handle this scenario; either your bundle layout is invalid or you found a bug in this program"
+                            );
+                            error!(
+                                "if the bundle signs and verifies with Apple's tooling, consider reporting this issue"
+                            );
                         }
                     } else {
                         self.seal_rules2_file(
@@ -1329,7 +1332,9 @@ impl CodeResourcesBuilder {
                 rel_path.display()
             );
             warn!("(an error will occur if this binary is not already signed)");
-            warn!("(if you see an error, sign that Mach-O explicitly or remove it from the exclusion settings)");
+            warn!(
+                "(if you see an error, sign that Mach-O explicitly or remove it from the exclusion settings)"
+            );
 
             let dest_path = context.install_file(full_path, rel_path)?;
             let data = isideload_vfs::fs::read(dest_path)?;
@@ -1355,7 +1360,6 @@ impl CodeResourcesBuilder {
         context: &mut BundleSigningContext,
     ) -> Result<(), AppleCodesignError> {
         let mut need_install = !context.previously_installed_paths.contains(rel_path);
-
         // Only seal if the omit flag is unset.
         if !omit {
             // Unlike Apple's tooling, we recognize Mach-O binaries when the nested

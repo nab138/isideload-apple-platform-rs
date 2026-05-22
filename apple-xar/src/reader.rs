@@ -287,10 +287,10 @@ impl<R: Read + Seek + Sized + Debug> XarReader<R> {
 
             match file.file_type {
                 FileType::Directory => {
-                    std::fs::create_dir(&dest_path)?;
+                    isideload_vfs::fs::create_dir(&dest_path)?;
                 }
                 FileType::File => {
-                    let mut fh = std::fs::File::create(&dest_path)?;
+                    let mut fh = isideload_vfs::fs::File::create(&dest_path)?;
                     self.write_file_data_decoded_from_file(&file, &mut fh)?;
                 }
                 FileType::HardLink => return Err(Error::Unsupported("writing hard links")),

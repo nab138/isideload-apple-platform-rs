@@ -1,0 +1,25 @@
+[package]
+name = "isideload-walkdir"
+version = "2.5.0"  #:version
+authors = ["Nicholas Sharp <nab@nabdev.me>"]
+description = "Recursively walk a directory."
+documentation = "https://docs.rs/walkdir/"
+homepage = "https://github.com/nab138/isideload-apple-platform-rs"
+repository = "https://github.com/nab138/isideload-apple-platform-rs"
+readme = "README.md"
+keywords = ["directory", "recursive", "walk", "iterator"]
+categories = ["filesystem"]
+license = "Unlicense/MIT"
+exclude = ["/ci/*", "/.travis.yml", "/appveyor.yml"]
+edition = "2018"
+
+
+[dependencies]
+same-file = "1.0.1"
+isideload-vfs = { version = "0.0.1", path = "../isideload-vfs" }
+
+[target.'cfg(windows)'.dependencies.winapi-util]
+version = "0.1.1"
+
+[dev-dependencies]
+doc-comment = "0.3"

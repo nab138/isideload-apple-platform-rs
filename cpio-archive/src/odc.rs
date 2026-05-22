@@ -503,7 +503,7 @@ impl<W: Write + Sized> OdcBuilder<W> {
         let archive_path = self.normalize_archive_path(&archive_path.to_string());
         let path = path.as_ref();
 
-        let mut fh = std::fs::File::open(path)?;
+        let mut fh = isideload_vfs::fs::File::open(path)?;
         let metadata = fh.metadata()?;
 
         if !metadata.is_file() {
@@ -579,7 +579,7 @@ mod tests {
         let mut builder = OdcBuilder::new(Cursor::new(Vec::<u8>::new()));
 
         let current_exe = std::env::current_exe().unwrap();
-        let current_exe_data = std::fs::read(&current_exe).unwrap();
+        let current_exe_data = isideload_vfs::fs::read(&current_exe).unwrap();
         builder
             .append_file_from_path("child/grandchild/exe", current_exe)
             .unwrap();

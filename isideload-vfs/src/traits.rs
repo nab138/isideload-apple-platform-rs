@@ -1,11 +1,32 @@
-use std::io::{Read, Write, Seek};
-use std::path::{Path, PathBuf};
 use std::io;
+use std::io::{Read, Seek, Write};
+use std::path::{Path, PathBuf};
 
-pub trait VfsFile: Read + Write + Seek + Send + Sync {
-    fn set_len(&self, _size: u64) -> io::Result<()> { Err(io::Error::new(io::ErrorKind::Unsupported, "set_len not supported on File")) }
-    fn metadata(&self) -> io::Result<Box<dyn VfsMetadata>> { Err(io::Error::new(io::ErrorKind::Unsupported, "metadata not supported on File")) }
-    fn set_permissions(&mut self, _perms: Box<dyn VfsPermissions>) -> io::Result<()> { Err(io::Error::new(io::ErrorKind::Unsupported, "set_permissions not supported on File")) }
+pub trait VfsFile: Read + Write + Seek + Send + Sync + std::fmt::Debug {
+    fn set_len(&self, _size: u64) -> io::Result<()> {
+        Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "set_len not supported on File",
+        ))
+    }
+    fn metadata(&self) -> io::Result<Box<dyn VfsMetadata>> {
+        Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "metadata not supported on File",
+        ))
+    }
+    fn set_permissions(&mut self, _perms: Box<dyn VfsPermissions>) -> io::Result<()> {
+        Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "set_permissions not supported on File",
+        ))
+    }
+    fn sync_all(&mut self) -> io::Result<()> {
+        Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "sync_all not supported on File",
+        ))
+    }
 }
 
 pub trait VfsMetadata: Send + Sync {
@@ -14,6 +35,56 @@ pub trait VfsMetadata: Send + Sync {
     fn is_symlink(&self) -> bool;
     fn len(&self) -> u64;
     fn permissions(&self) -> Box<dyn VfsPermissions>;
+
+    // Unix ext methods
+    fn dev(&self) -> u64 {
+        0
+    }
+    fn ino(&self) -> u64 {
+        0
+    }
+    fn mode(&self) -> u32 {
+        0
+    }
+    fn nlink(&self) -> u64 {
+        1
+    }
+    fn uid(&self) -> u32 {
+        0
+    }
+    fn gid(&self) -> u32 {
+        0
+    }
+    fn rdev(&self) -> u64 {
+        0
+    }
+    fn size(&self) -> u64 {
+        self.len()
+    }
+    fn atime(&self) -> i64 {
+        0
+    }
+    fn atime_nsec(&self) -> i64 {
+        0
+    }
+    fn mtime(&self) -> i64 {
+        0
+    }
+    fn mtime_nsec(&self) -> i64 {
+        0
+    }
+    fn ctime(&self) -> i64 {
+        0
+    }
+    fn ctime_nsec(&self) -> i64 {
+        0
+    }
+    fn blksize(&self) -> u64 {
+        0
+    }
+    fn blocks(&self) -> u64 {
+        0
+    }
 }
 
 pub trait VfsPermissions: Send + Sync {
@@ -49,4 +120,6 @@ pub trait Vfs: Send + Sync {
     fn metadata(&self, path: &Path) -> io::Result<Box<dyn VfsMetadata>>;
     fn symlink_metadata(&self, path: &Path) -> io::Result<Box<dyn VfsMetadata>>;
     fn read_dir(&self, path: &Path) -> io::Result<Vec<PathBuf>>;
+    fn temp_dir(&self) -> PathBuf;
+    fn symlink(&self, target: &Path, link: &Path) -> io::Result<()>;
 }
