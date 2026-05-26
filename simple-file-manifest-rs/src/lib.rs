@@ -78,29 +78,12 @@ pub fn set_executable(_file: &mut isideload_vfs::fs::File) -> Result<(), std::io
     Ok(())
 }
 
-#[cfg(any(unix, target_arch = "wasm32"))]
+#[cfg(any(unix, target_arch = "wasm32", windows))]
 pub fn create_symlink(
     path: impl AsRef<Path>,
     target: impl AsRef<Path>,
 ) -> Result<(), std::io::Error> {
     isideload_vfs::fs::symlink(target, path)
-}
-
-#[cfg(windows)]
-pub fn create_symlink(
-    path: impl AsRef<Path>,
-    target: impl AsRef<Path>,
-) -> Result<(), std::io::Error> {
-    let target = target.as_ref();
-
-    // The function to call depends on the type of the target.
-    let metadata = isideload_vfs::fs::metadata(target)?;
-
-    if metadata.is_dir() {
-        isideload_vfs::fs::symlink_dir(target, path)
-    } else {
-        isideload_vfs::fs::symlink_file(target, path)
-    }
 }
 
 #[cfg(not(any(unix, target_arch = "wasm32", windows)))]
