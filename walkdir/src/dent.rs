@@ -48,14 +48,6 @@ pub struct DirEntry {
     /// The underlying inode number (Unix only).
     #[cfg(unix)]
     ino: u64,
-    /// The underlying metadata (Windows only). We store this on Windows
-    /// because this comes for free while reading a directory.
-    ///
-    /// We use this to determine whether an entry is a directory or not, which
-    /// works around a bug in Rust's standard library:
-    /// https://github.com/rust-lang/rust/issues/46484
-    #[cfg(windows)]
-    metadata: fs::Metadata,
 }
 
 impl DirEntry {
@@ -127,17 +119,6 @@ impl DirEntry {
         self.metadata_internal()
     }
 
-    #[cfg(windows)]
-    fn metadata_internal(&self) -> Result<fs::Metadata> {
-        if self.follow_link {
-            fs::metadata(&self.path)
-        } else {
-            Ok(self.metadata.clone())
-        }
-        .map_err(|err| Error::from_entry(self, err))
-    }
-
-    #[cfg(not(windows))]
     fn metadata_internal(&self) -> Result<fs::Metadata> {
         if self.follow_link {
             fs::metadata(&self.path)
@@ -189,15 +170,11 @@ impl DirEntry {
         let ty = ent
             .file_type()
             .map_err(|err| Error::from_path(depth, path.clone(), err))?;
-        let md = ent
-            .metadata()
-            .map_err(|err| Error::from_path(depth, path.clone(), err))?;
         Ok(DirEntry {
             path,
             ty,
             follow_link: false,
             depth,
-            metadata: md,
         })
     }
 
@@ -242,7 +219,6 @@ impl DirEntry {
             ty: md.file_type(),
             follow_link: follow,
             depth,
-            metadata: md,
         })
     }
 
@@ -288,7 +264,6 @@ impl Clone for DirEntry {
             ty: self.ty,
             follow_link: self.follow_link,
             depth: self.depth,
-            metadata: self.metadata.clone(),
         }
     }
 
