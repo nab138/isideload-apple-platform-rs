@@ -1,6 +1,6 @@
 [package]
 name = "isideload-apple-xar"
-version = "0.20.4"
+version = "0.20.5"
 authors = ["Nicholas Sharp <nab@nabdev.me>"]
 edition = "2021"
 rust-version = "1.81"
@@ -16,7 +16,7 @@ base64 = "0.22.1"
 bcder = { version = "0.7.4", optional = true }
 bzip2 = "0.6.1"
 chrono = { version = "0.4.38", features = ["serde"] }
-cryptographic-message-syntax = { version = "0.31.0", package = "isideload-cryptographic-message-syntax", optional = true}
+cryptographic-message-syntax = { version = "0.31.1", package = "isideload-cryptographic-message-syntax", optional = true } # , path = "../../cryptography-rs/cryptographic-message-syntax" }
 digest = "0.10.7"
 log = "0.4.22"
 md-5 = "0.10.6"
@@ -30,7 +30,7 @@ sha2 = "0.10.8"
 signature = { version = "2.2.0", features = ["std"], optional = true }
 thiserror = "2.0.3"
 xml-rs = "0.8.23"
-x509-certificate = { version = "0.26.0", package = "isideload-x509-certificate" }
+x509-certificate = { version = "0.26.1", package = "isideload-x509-certificate" } #, path = "../../cryptography-rs/x509-certificate" }
 liblzma = { version = "0.4.6", features = ["static"] }
 isideload-vfs = { version = "0.0.1", path = "../isideload-vfs" }
 
