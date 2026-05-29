@@ -156,7 +156,5 @@ pub use signing::*;
 pub mod specification;
 mod verify;
 pub use verify::*;
-#[cfg(target_os = "windows")]
-pub mod windows;
 #[cfg(feature = "yubikey")]
 pub mod yubikey;

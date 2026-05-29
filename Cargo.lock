@@ -1059,7 +1059,7 @@ dependencies = [
 
 [[package]]
 name = "isideload-apple-codesign"
-version = "0.29.10"
+version = "0.29.11"
 dependencies = [
  "anyhow",
  "base64",
